@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">TATVA</string>
+    <string name="title_activity_main">TATVA</string>
+    <string name="package_name">com.tatva.app</string>
+    <string name="custom_url_scheme">com.tatva.app</string>
+</resources>
