@@ -14,6 +14,7 @@ export default function Home() {
   useEffect(() => {
     // Check if user is already logged in
     const savedUser = localStorage.getItem("tatva_user")
+    // console.log("Saved User",savedUser)
     if (savedUser) {
       setUser(JSON.parse(savedUser))
       setIsAuthenticated(true)
@@ -27,10 +28,11 @@ export default function Home() {
     localStorage.setItem("tatva_user", JSON.stringify(userData))
   }
 
-  const handleLogout = () => {
+  const handleLogout = () => {  
     setUser(null)
     setIsAuthenticated(false)
     localStorage.removeItem("tatva_user")
+    // localStorage.removeItem("user_1")
   }
 
   const handleUserUpdate = (updatedUser: any) => {

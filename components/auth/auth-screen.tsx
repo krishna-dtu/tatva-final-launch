@@ -26,11 +26,17 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
     language: "english",
   })
 
-  const handlePhoneSubmit = () => setStep("otp")
+  const handlePhoneSubmit = () => {
+    setStep("otp")
+  }
+
   const handleOtpSubmit = () => {
     const existingUser = localStorage.getItem(`user_${phoneNumber}`)
-    if (existingUser) onLogin(JSON.parse(existingUser))
-    else setStep("profile")
+    if (existingUser) {
+      onLogin(JSON.parse(existingUser))
+    } else {
+      setStep("profile")
+    }
   }
 
   const handleProfileSubmit = () => {
