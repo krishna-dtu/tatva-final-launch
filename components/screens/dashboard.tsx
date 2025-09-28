@@ -42,7 +42,7 @@ export function Dashboard({ user, onNavigate }: DashboardProps) {
         <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
           <CardContent className="p-4 text-center">
             <Star className="w-6 h-6 mx-auto mb-2 text-primary animate-glow" />
-            <p className="text-2xl font-bold text-primary">{user?.stars || 0}</p>
+            <p className="text-2xl font-bold text-primary">{user?.stars || 0}</p> {/*  Stars*/}
             <p className="text-xs text-muted-foreground">{t("stars")}</p>
           </CardContent>
         </Card>
