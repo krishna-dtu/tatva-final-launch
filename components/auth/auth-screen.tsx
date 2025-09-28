@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -25,17 +26,11 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
     language: "english",
   })
 
-  const handlePhoneSubmit = () => {
-    setStep("otp")
-  }
-
+  const handlePhoneSubmit = () => setStep("otp")
   const handleOtpSubmit = () => {
     const existingUser = localStorage.getItem(`user_${phoneNumber}`)
-    if (existingUser) {
-      onLogin(JSON.parse(existingUser))
-    } else {
-      setStep("profile")
-    }
+    if (existingUser) onLogin(JSON.parse(existingUser))
+    else setStep("profile")
   }
 
   const handleProfileSubmit = () => {
@@ -55,20 +50,12 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20 flex items-center justify-center p-4">
+      {/* Floating background circles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-4 h-4 bg-accent rounded-full animate-float opacity-60"></div>
-        <div
-          className="absolute top-40 right-20 w-6 h-6 bg-primary rounded-full animate-float opacity-40"
-          style={{ animationDelay: "1s" }}
-        ></div>
-        <div
-          className="absolute bottom-32 left-1/4 w-3 h-3 bg-secondary rounded-full animate-float opacity-50"
-          style={{ animationDelay: "2s" }}
-        ></div>
-        <div
-          className="absolute bottom-20 right-1/3 w-5 h-5 bg-accent rounded-full animate-float opacity-30"
-          style={{ animationDelay: "0.5s" }}
-        ></div>
+        <div className="absolute top-40 right-20 w-6 h-6 bg-primary rounded-full animate-float opacity-40" style={{ animationDelay: "1s" }}></div>
+        <div className="absolute bottom-32 left-1/4 w-3 h-3 bg-secondary rounded-full animate-float opacity-50" style={{ animationDelay: "2s" }}></div>
+        <div className="absolute bottom-20 right-1/3 w-5 h-5 bg-accent rounded-full animate-float opacity-30" style={{ animationDelay: "0.5s" }}></div>
       </div>
 
       <Card className="w-full max-w-md relative z-10 bg-card/95 backdrop-blur-sm border-2 border-primary/20">
@@ -85,6 +72,7 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
         </CardHeader>
 
         <CardContent className="space-y-6">
+          {/* Step Content */}
           {step === "phone" && (
             <div className="space-y-4">
               <div className="space-y-2">
@@ -201,6 +189,19 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
               </Button>
             </div>
           )}
+
+          {/* --- Teacher Login Link --- */}
+          <div className="mt-4 text-center">
+            <p className="text-sm text-gray-500">
+              Are you a teacher?{" "}
+              <Link
+                href="/teacher/login"
+                className="text-indigo-600 font-medium hover:text-indigo-500"
+              >
+                Login here
+              </Link>
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>
