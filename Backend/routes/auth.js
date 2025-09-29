@@ -6,7 +6,111 @@ const Subject = require('../models/Subjects');
 const subjectUser = require('../models/subjectUser')
 const question = require("../models/Question");
 const Question = require('../models/Question');
+const DailyStats = require('../models/DailyStats')
 
+ 
+const getDailyStats = async(phoneNo) => {
+  try {
+    const today = new Date();
+    const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    let stats = await DailyStats.findOne({ phoneNo });
+
+    if (!stats) {
+      // User not found, return default values
+      return {
+        solved: 0,
+        streak: 1
+      };
+    }
+
+    const lastUpdate = new Date(stats.updated);
+    const lastUpdateDateOnly = new Date(lastUpdate.getFullYear(), lastUpdate.getMonth(), lastUpdate.getDate());
+
+    const diffInDays = Math.floor((todayDateOnly - lastUpdateDateOnly) / (1000 * 60 * 60 * 24));
+
+    if (diffInDays === 0) {
+      // Same day
+      return {
+        solved: stats.solved,
+        streak: stats.streak
+      };
+    } else {
+      // Not today
+      let newStreak = stats.streak;
+
+      if (diffInDays === 1) {
+        // Keep current streak
+        newStreak = stats.streak;
+      } else {
+        // Missed more than 1 day → reset streak to 1
+        newStreak = 1;
+      }
+
+      return {
+        solved: 0,
+        streak: newStreak
+      };
+    }
+  } catch (error) {
+    console.error('Error getting daily stats:', error);
+    throw error;
+  }
+}
+
+router.post("/daily_info" , async(req,res)=>{
+  const {phone_no} = req.body;
+  ans = await getDailyStats(phone_no);
+  console.log(ans , "ans")
+  res.send(ans)
+})
+
+const updateDailyStats = async(phoneNo)=> {
+  try {
+    const today = new Date();
+    const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    let stats = await DailyStats.findOne({ phoneNo });
+
+    if (!stats) {
+      // If user doesn't exist, create new entry
+      stats = new DailyStats({
+        phoneNo,
+        solved: 1,
+        streak: 1,
+        updated: today
+      });
+      await stats.save();
+      console.log('New stats created.');
+      return;
+    }
+
+    const lastUpdate = new Date(stats.updated);
+    const lastUpdateDateOnly = new Date(lastUpdate.getFullYear(), lastUpdate.getMonth(), lastUpdate.getDate());
+
+    const diffInDays = Math.floor((todayDateOnly - lastUpdateDateOnly) / (1000 * 60 * 60 * 24));
+
+    if (diffInDays === 0) {
+      // Same day
+      stats.solved += 1;
+      // streak remains the same
+    } else if (diffInDays === 1) {
+      // Next day
+      stats.streak += 1;
+      stats.solved = 1;
+    } else {
+      // Missed at least 1 day
+      stats.streak = 0;
+      stats.solved = 1;
+    }
+
+    stats.updated = Date.now();
+    await stats.save();
+    console.log('Stats updated successfully.');
+  } catch (error) {
+    console.error('Error updating daily stats:', error);
+  }
+}
 
 router.get('/',(req,res)=>{
   res.send("Check")
@@ -190,6 +294,10 @@ router.post("/getQuestion", async (req, res) => {
     const size = user.solved;
 
     let ans = await Question.find({ subjectId: req.body.subjectId });
+    let n_user = await subjectUser.find({ subject: req.body.subjectId, phone: req.body.phone_no });
+    if(n_user.length > 1){
+      let res = subjectUser.findByIdAndDelete(n_user[0]._id)
+    }
 
     console.log("Question", ans, req.body.phone_no);
 
@@ -235,11 +343,11 @@ router.post('/completed', async (req, res) => {
 
 
   router.post("/updateuser", async (req, res) => {
-  const { subjectId, phone_no, ans } = req.body;
-  console.log("Received answers:", ans);
+  const { subjectId, phone_no } = req.body;
 
   try {
     // Update SubjectUser collection
+    updateDailyStats(phone_no);
     const updatedDoc = await subjectUser.findOneAndUpdate(
       {
         subject: subjectId,
