@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Star, Coins, Trophy, Rocket, BookOpen, Target, Zap, Award } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation"
+import { useEffect } from "react"
 
 interface DashboardProps {
   user: any
@@ -12,6 +13,22 @@ interface DashboardProps {
 }
 
 export function Dashboard({ user, onNavigate }: DashboardProps) {
+  // useEffect(()=> {
+  //   const getData = async()=>{
+  //   const response = await fetch("http://localhost:5000/userData",{
+  //     method : "POST",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //     body: JSON.stringify({
+  //       phone_no: user.phone_no
+  //     })
+  //     })
+  //     user = await response.json()
+  //   }
+  //   getData
+  // },[])
+
   const { t } = useTranslation()
 
   const getGreeting = () => {
@@ -75,9 +92,9 @@ export function Dashboard({ user, onNavigate }: DashboardProps) {
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span>{t("overallProgress")}</span>
-              <span>25%</span>
+              <span>0%</span>
             </div>
-            <Progress value={25} className="h-2" />
+            <Progress value={0} className="h-2" />
           </div>
 
           <div className="grid grid-cols-2 gap-4 text-sm">

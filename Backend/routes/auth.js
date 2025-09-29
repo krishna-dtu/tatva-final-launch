@@ -1,7 +1,11 @@
 const express = require('express');
 const { default: mongoose } = require('mongoose');
 const router = express.Router()
-const User = require('../models/User'); // adjust path based on file location
+const User = require('../models/User');
+const Subject = require('../models/Subjects'); 
+const subjectUser = require('../models/subjectUser')
+const question = require("../models/Question");
+const Question = require('../models/Question');
 
 
 router.get('/',(req,res)=>{
@@ -166,6 +170,88 @@ router.post('/update-user', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+router.post("/getQuestion",async(req,res)=>{
+    console.log("Check",res.body)
+    let user = await subjectUser.find({subjectId : req.body.subjectId , phone : req.body.phone_no});
+    if (user){
+      user = new subjectUser({
+      phone : req.body.phone_no,
+      subject : req.body.subjectId,
+      lastUpdated: Date.now()
+    });
+    await user.save()  
+    size = user.answers.length 
+  
+    }
+    try{
+    let ans = await Question.find({subjectId : req.body.subjectId});
+    console.log("Question" ,ans , req.body.phone_no)
+    res.json({"size" : size , "question" : ans , "ans" : user.answers});
+    }
+    catch(err){
+      console.log(err)
+      res.send(err)
+    }
+  })
+
+  router.post("/updateuser",async(req,res)=>{
+    const {subjectId,phone_no,new_ans} = req.body;
+    try {
+    const updatedDoc = await subjectUser.findOneAndUpdate(
+      {
+        subject: subjectId,
+        phone: phone_no
+      },
+      {
+        answers: new_ans,
+        lastUpdated: Date.now()
+      },
+      {
+        new: true,       // return the updated document
+        upsert: true    
+      }
+    );
+
+    const updateUser = await User.findOneAndUpdate({phone_no},{
+        $inc: {
+          exp: 5,
+          stars: 10,
+          coins : 20
+        },
+        $set: {
+      lastUpdated: Date.now() // <-- Fix here: call the function
+    }
+      },
+      {
+        new: true
+      }
+    )
+
+    if (!updatedDoc) {
+      return res.status(404).json({ message: 'SubjectUser not found' });
+    }
+
+    res.status(200).json({
+      message: 'Answers updated successfully',
+      data: updatedDoc
+    });
+  } catch (error) {
+    console.error("Update error:", error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+    
+  })
+
+
+  router.post("/getData",async(req,res)=>{
+    const {phone_no} = req.body;
+    let userData = await User.findOne({phone_no})
+    userData.missions = 0,
+    dailymission = [0,0,0],
+    weeklymission = [0,0]
+  })
+
 
 
 

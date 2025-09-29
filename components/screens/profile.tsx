@@ -95,7 +95,7 @@ export function Profile({ user, onLogout, onUserUpdate, onLanguageChange }: Prof
             <div className="flex-1 space-y-1">
               <h2 className="text-xl font-bold text-foreground">{user?.name || "Space Explorer"}</h2>
               <p className="text-sm text-muted-foreground">
-                Level {level} • {title}
+                Level {1} • {title}
               </p>
               <div className="flex items-center gap-4 text-sm">
                 <div className="flex items-center gap-1">
@@ -116,7 +116,7 @@ export function Profile({ user, onLogout, onUserUpdate, onLanguageChange }: Prof
         <Card className="bg-card/50 backdrop-blur-sm border-border/50">
           <CardContent className="p-4 text-center">
             <Trophy className="w-6 h-6 mx-auto mb-2 text-accent" />
-            <p className="text-lg font-bold text-foreground">{user?.badges?.length || 3}</p>
+            <p className="text-lg font-bold text-foreground">{user?.badges?.length || 0}</p>
             <p className="text-xs text-muted-foreground">Badges</p>
           </CardContent>
         </Card>
@@ -124,7 +124,7 @@ export function Profile({ user, onLogout, onUserUpdate, onLanguageChange }: Prof
         <Card className="bg-card/50 backdrop-blur-sm border-border/50">
           <CardContent className="p-4 text-center">
             <Crown className="w-6 h-6 mx-auto mb-2 text-yellow-500" />
-            <p className="text-lg font-bold text-foreground">5</p>
+            <p className="text-lg font-bold text-foreground">1</p>
             <p className="text-xs text-muted-foreground">Day Streak</p>
           </CardContent>
         </Card>
@@ -132,7 +132,7 @@ export function Profile({ user, onLogout, onUserUpdate, onLanguageChange }: Prof
         <Card className="bg-card/50 backdrop-blur-sm border-border/50">
           <CardContent className="p-4 text-center">
             <User className="w-6 h-6 mx-auto mb-2 text-primary" />
-            <p className="text-lg font-bold text-foreground">{level}</p>
+            <p className="text-lg font-bold text-foreground">{1}</p>
             <p className="text-xs text-muted-foreground">Level</p>
           </CardContent>
         </Card>

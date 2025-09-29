@@ -10,9 +10,11 @@ import { useState } from "react"
 
 interface SubjectsProps {
   user: any
+  onNavigate: (screen: string) => void
+  quizID : (screen :string)=>void
 }
 
-export function Subjects({ user }: SubjectsProps) {
+export function Subjects({ user , onNavigate ,quizID }: SubjectsProps) {
   const { t } = useTranslation()
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null)
 
@@ -23,9 +25,9 @@ export function Subjects({ user }: SubjectsProps) {
       planetKey: "planetNumerus" as const,
       icon: "🔢",
       color: "from-blue-500 to-cyan-500",
-      progress: 45,
-      chapters: 12,
-      completedChapters: 5,
+      progress: 0,
+      chapters: 10,
+      completedChapters: 0,
       unlocked: true,
       stars: 23,
       questions: [
@@ -40,9 +42,9 @@ export function Subjects({ user }: SubjectsProps) {
       planetKey: "planetScientia" as const,
       icon: "🧪",
       color: "from-green-500 to-emerald-500",
-      progress: 30,
+      progress: 0,
       chapters: 10,
-      completedChapters: 3,
+      completedChapters: 0,
       unlocked: true,
       stars: 15,
       questions: [
@@ -57,9 +59,9 @@ export function Subjects({ user }: SubjectsProps) {
       planetKey: "planetLingua" as const,
       icon: "📚",
       color: "from-purple-500 to-pink-500",
-      progress: 60,
-      chapters: 8,
-      completedChapters: 5,
+      progress: 0,
+      chapters: 10,
+      completedChapters: 0,
       unlocked: true,
       stars: 28,
       questions: [
@@ -124,7 +126,7 @@ export function Subjects({ user }: SubjectsProps) {
                 : "border-muted/20 opacity-60",
             )}
           >
-            <CardContent className="p-4">
+            <CardContent className="p-4" >
               <div className="flex items-center gap-4">
                 <div
                   className={cn(
@@ -192,7 +194,13 @@ export function Subjects({ user }: SubjectsProps) {
                       size="sm"
                       variant="outline"
                       className="border-accent/20 hover:bg-accent/10 bg-transparent"
-                      onClick={() => setSelectedSubject(subject.id)}
+                      // onClick={() => setSelectedSubject(subject.id)}
+                      onClick={
+                        () => {
+                          onNavigate("quiz");
+                          quizID(subject.id)
+                        }
+                      }
                     >
                       <MessageCircle className="w-4 h-4 mr-1" />
                       {t("askMe")}

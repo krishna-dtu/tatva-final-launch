@@ -41,7 +41,7 @@ const achievements = [
     description: "Login for 7 consecutive days",
     icon: "🔥",
     earned: false,
-    progress: 5,
+    progress: 0,
     total: 7,
   },
   {
@@ -50,7 +50,7 @@ const achievements = [
     description: "Earn 100 stars",
     icon: "⭐",
     earned: false,
-    progress: 66,
+    progress: 0,
     total: 100,
   },
 ]
@@ -84,17 +84,17 @@ export function Progress({ user }: ProgressProps) {
         <CardContent className="space-y-4">
           <div className="text-center">
             <div className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              {t("level")} 3
+              {t("level")} 1
             </div>
             <p className="text-sm text-muted-foreground">{t("spaceCadet")}</p>
           </div>
 
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span>{t("progressToLevel4")}</span>
-              <span>750/1000 XP</span>
+              <span>{t("progressToLevel2")}</span>
+              <span>10/1000 XP</span>
             </div>
-            <ProgressBar value={75} className="h-3" />
+            <ProgressBar value={0} className="h-3" />
           </div>
         </CardContent>
       </Card>
@@ -114,7 +114,7 @@ export function Progress({ user }: ProgressProps) {
                   {t(stat.label.toLowerCase().replace(/\s+/g, "") as any) || stat.label}
                 </p>
                 <div className="flex items-center gap-2">
-                  <span className="text-lg font-bold text-foreground">{stat.value}</span>
+                  <span className="text-lg font-bold text-foreground">{0}</span>
                   <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-xs">{stat.change}</Badge>
                 </div>
               </div>
@@ -138,9 +138,9 @@ export function Progress({ user }: ProgressProps) {
                   <span>🔢</span>
                   <span>{t("mathematics")}</span>
                 </span>
-                <span>45%</span>
+                <span>0%</span>
               </div>
-              <ProgressBar value={45} className="h-2" />
+              <ProgressBar value={0} className="h-2" />
             </div>
 
             <div className="space-y-2">
@@ -151,7 +151,7 @@ export function Progress({ user }: ProgressProps) {
                 </span>
                 <span>30%</span>
               </div>
-              <ProgressBar value={30} className="h-2" />
+              <ProgressBar value={0} className="h-2" />
             </div>
 
             <div className="space-y-2">
@@ -162,7 +162,7 @@ export function Progress({ user }: ProgressProps) {
                 </span>
                 <span>60%</span>
               </div>
-              <ProgressBar value={60} className="h-2" />
+              <ProgressBar value={0} className="h-2" />
             </div>
           </div>
         </CardContent>

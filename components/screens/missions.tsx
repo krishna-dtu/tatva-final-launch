@@ -15,7 +15,7 @@ const dailyMissions = [
     id: "daily-math",
     title: "Math Master",
     description: "Complete 3 math problems",
-    progress: 2,
+    progress: 0,
     total: 3,
     reward: 50,
     type: "coins",
@@ -25,7 +25,7 @@ const dailyMissions = [
     id: "daily-reading",
     title: "Reading Rocket",
     description: "Read for 15 minutes",
-    progress: 8,
+    progress: 0,
     total: 15,
     reward: 30,
     type: "coins",
@@ -35,7 +35,7 @@ const dailyMissions = [
     id: "daily-streak",
     title: "Learning Streak",
     description: "Login for 3 consecutive days",
-    progress: 2,
+    progress: 0,
     total: 3,
     reward: 100,
     type: "coins",
@@ -48,7 +48,7 @@ const weeklyMissions = [
     id: "weekly-explorer",
     title: "Planet Explorer",
     description: "Complete 5 chapters across any subjects",
-    progress: 3,
+    progress: 0,
     total: 5,
     reward: "Space Explorer Badge",
     type: "badge",
@@ -58,7 +58,7 @@ const weeklyMissions = [
     id: "weekly-star",
     title: "Star Collector",
     description: "Earn 50 stars this week",
-    progress: 32,
+    progress: 0,
     total: 50,
     reward: 200,
     type: "coins",
@@ -71,7 +71,7 @@ const specialEvents = [
     id: "diwali-special",
     title: "Diwali Festival Challenge",
     description: "Complete special Diwali-themed lessons",
-    progress: 1,
+    progress: 0,
     total: 5,
     reward: "Festival Crown",
     type: "crown",
@@ -133,10 +133,12 @@ export function Missions({ user }: MissionsProps) {
           <div className="flex justify-between text-sm">
             <span>Progress</span>
             <span>
-              {mission.progress}/{mission.total}
+              {/* {mission.progress}/{mission.total} */}
+              {0}/{mission.total}
             </span>
           </div>
-          <Progress value={(mission.progress / mission.total) * 100} className="h-2" />
+          {/* <Progress value={(mission.progress / mission.total) * 100} className="h-2" /> */}
+          <Progress value={(0 / mission.total) * 100} className="h-2" />
         </div>
 
         <div className="flex items-center justify-between">
@@ -210,15 +212,15 @@ export function Missions({ user }: MissionsProps) {
         <CardContent>
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
-              <p className="text-2xl font-bold text-primary">12</p>
+              <p className="text-2xl font-bold text-primary">0</p>
               <p className="text-xs text-muted-foreground">Completed</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-accent">5</p>
+              <p className="text-2xl font-bold text-accent">3</p>
               <p className="text-xs text-muted-foreground">In Progress</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-secondary">850</p>
+              <p className="text-2xl font-bold text-secondary">{user?.coins}</p>
               <p className="text-xs text-muted-foreground">Total Coins</p>
             </div>
           </div>
