@@ -42,7 +42,7 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
     console.log("Body Parser",parsedLocalUser)
 
     try {
-      const res = await fetch("http://localhost:5000/getUser", {
+      const res = await fetch("https://tatvab.onrender.com/getUser", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -67,7 +67,7 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
       } else if (localUpdated > apiUpdated) {
         // Local user data is newer → sync to backend
         console.log("Local user is newer, syncing to backend.");
-        await fetch("http://localhost:5000/update-user", {
+        await fetch("https://tatvab.onrender.com/update-user", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
@@ -92,7 +92,7 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
 
   // If no user in localStorage, check backend existence
   try {
-    const response = await fetch("http://localhost:5000/check-user", {
+    const response = await fetch("https://tatvab.onrender.com/check-user", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -144,7 +144,7 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
   };
 
   try {
-    const response = await fetch("http://localhost:5000/create-user", {
+    const response = await fetch("https://tatvab.onrender.com/create-user", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

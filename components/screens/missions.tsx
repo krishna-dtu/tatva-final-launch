@@ -59,7 +59,7 @@ export function Missions({ user }: MissionsProps) {
 ]
   useEffect(()=>{
       console.log("Use effect")
-      fetch('http://localhost:5000/progress', {
+      fetch('https://tatvab.onrender.com/progress', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -83,7 +83,7 @@ export function Missions({ user }: MissionsProps) {
       console.error('Error:', error);
     });
 
-    fetch('http://localhost:5000/daily_info', {
+    fetch('https://tatvab.onrender.com/daily_info', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

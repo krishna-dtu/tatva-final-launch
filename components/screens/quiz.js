@@ -45,7 +45,7 @@ export function Quiz({S_id,user}){
     let sid = sid_map()
     console.log("sid",sid)
     console.log("user",user)
-  const response = await fetch("http://localhost:5000/getQuestion", {
+  const response = await fetch("https://tatvab.onrender.com/getQuestion", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -129,7 +129,7 @@ export function Quiz({S_id,user}){
     // user = newUser()
     let phone_no = user.phone_no || user.phoneNumber
     
-    fetch("http://localhost:5000/updateuser",{
+    fetch("https://tatvab.onrender.com/updateuser",{
       method : "POST",
       headers: {
         "Content-Type": "application/json",
@@ -241,7 +241,7 @@ export function Quiz({S_id,user}){
   // Quiz Results Screen
   if (quizCompleted) {
     // 
-    fetch("http://localhost:5000/completed",{
+    fetch("https://tatvab.onrender.com/completed",{
       method : "POST",
       headers: {
         "Content-Type": "application/json",

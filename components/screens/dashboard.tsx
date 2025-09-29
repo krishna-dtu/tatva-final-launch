@@ -15,7 +15,7 @@ interface DashboardProps {
 export function Dashboard({ user, onNavigate }: DashboardProps) {
   // useEffect(()=> {
   //   const getData = async()=>{
-  //   const response = await fetch("http://localhost:5000/userData",{
+  //   const response = await fetch("https://tatvab.onrender.com/userData",{
   //     method : "POST",
   //     headers: {
   //       "Content-Type": "application/json",
@@ -31,7 +31,7 @@ export function Dashboard({ user, onNavigate }: DashboardProps) {
 
   const [dailyStat , setDailyStat] = useState({"solved" : 0 , "streak" : 1})
   useEffect(()=>{
-    fetch('http://localhost:5000/daily_info', {
+    fetch('https://tatvab.onrender.com/daily_info', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

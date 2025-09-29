@@ -70,7 +70,7 @@ export function Progress({ user }: ProgressProps) {
     // -------------------------------
     useEffect(()=>{
       console.log("Use effect")
-      fetch('http://localhost:5000/progress', {
+      fetch('https://tatvab.onrender.com/progress', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
