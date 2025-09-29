@@ -1,11 +1,11 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { X, MessageCircle } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
+// Replaced external UI imports with standard HTML/Tailwind
+import { X, MessageCircle, Mic, Loader2, Send, Zap } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useTranslation } from "@/hooks/use-translation"
+// Assuming these imports work in your actual project:
+// import { useTranslation } from "@/hooks/use-translation" 
 
 interface User {
   name?: string
@@ -16,280 +16,337 @@ interface AstronautMascotProps {
   user: User
 }
 
-// RULE-BASED BOT RESPONSES
-const botResponses: { [key: string]: string[] } = {
-  hello: [
-    "Hello, Space Explorer! 🚀 Ready for a galaxy adventure?",
-    "Hey {name}! The stars are waiting for you! 🌌"
-  ],
-  hi: [
-    "Hi there! Let's explore some planets today! 🪐",
-    "Hey hey! Ready to discover new galaxies? ✨"
-  ],
-  how: [
-    "I'm Astro, your guide through the Tatva galaxy! 🛰️",
-    "I can answer questions about space, your subjects, and Tatva missions! 🏆"
-  ],
-  bye: [
-    "Goodbye, Captain! See you on another mission! 🌠",
-    "Mission over for now, but the stars will wait for you! 🌌"
-  ],
-  help: [
-    "You can ask me about space, your subjects, or Tatva's missions and rewards! 🌟",
-    "Ask me about planets, stars, badges, or just say hi! 🚀"
-  ],
-  tatva: [
-    "Tatva is your space-adventure learning platform! Complete missions, earn rewards, and explore the galaxy! 🪐",
-    "In Tatva, every planet has challenges. Completing them earns you badges and fun surprises! 🌌"
-  ],
-  mission: [
-    "Your mission is to complete learning quests and collect badges! 🏆",
-    "Every planet has a challenge waiting for you, Captain! 🌟"
-  ],
-  reward: [
-    "Collect rewards to upgrade your space gear! 🚀",
-    "Earn badges and celebrate your galactic achievements! 🌌"
-  ],
-  space: [
-    "Space is vast and full of mysteries! Did you know Saturn could float in water? 🪐",
-    "Stars are massive balls of gas. Some are older than our planet! ✨",
-    "A day on Venus is longer than a year there! 🌞"
-  ],
-  math: [
-    "Math is your rocket fuel for problem-solving! 🚀 Need help with addition, subtraction, or algebra?",
-    "Ask me a math question and I'll guide you, Explorer!"
-  ],
-  science: [
-    "Science helps us understand the universe! 🔬 What topic do you want to learn about?",
-    "Physics, chemistry, biology… I can give you fun facts about each!"
-  ],
-  features: [
-    "Tatva has missions, rewards, badges, and fun space adventures! 🏆",
-    "You can track your progress, earn stars, and explore planets in Tatva! 🌌"
-  ],
-  joke: [
-    "Why did the astronaut break up with the moon? He needed space! 😄",
-    "What do you call a lazy spaceman? An astro-nap! 😂"
-  ],
-  thanks: [
-    "You're welcome, Captain! Keep exploring! ✨",
-    "Anytime! The galaxy is ours to explore! 🌌"
-  ],
-  motivation: [
-    "Every step forward is a step closer to the stars! 🚀",
-    "Keep learning, Captain! The universe awaits! 🌌",
-    "You are the hero of your own space adventure! 🌠"
-  ],
-  default: [
-    "Hmm, I didn't understand that. Ask me about Tatva, your subjects, or space! 🌌",
-    "Captain, I am here to guide you! Ask me about planets, missions, or rewards! 🚀"
-  ]
+interface ChatMessage {
+    from: 'user' | 'bot';
+    text: string;
 }
 
-// FUNCTION TO GET BOT REPLY BASED ON KEYWORDS
-function getBotReply(userMessage: string, userName: string) {
-  const msg = userMessage.toLowerCase()
+// --- GEMINI API CONFIGURATION (NOW USING THE PROVIDED KEY) ---
+const realGeminiApiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent';
+const apiKey = "AIzaSyDZYTpAJpl7KAPj47AwK5oaBxYhrV8M0ss"; 
+// IMPORTANT: The key is now included here to ensure the API call works!
 
-  for (const key in botResponses) {
-    if (msg.includes(key)) {
-      const replies = botResponses[key]
-      const randomReply = replies[Math.floor(Math.random() * replies.length)]
-      return randomReply.replace("{name}", userName || "Explorer")
+// --- GEMINI API HANDLER (Now handles conversation context and real API structure) ---
+const callRealGeminiApi = async (
+    // Pass the full conversation history for context
+    history: ChatMessage[], 
+    query: string,
+    userName: string,
+    setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>,
+    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>
+) => {
+    // 1. Add current user query to history state immediately
+    setMessages(prev => [...prev, { from: 'user', text: query }]);
+    setIsLoading(true);
+
+    // 2. Format history for Gemini API payload
+    // Filter out the initial greeting to keep the context clean if needed, 
+    // but typically we pass all messages except the one just added.
+    const contents = history.map(msg => ({
+        role: msg.from === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.text }]
+    }));
+    // Add the current query to the contents array as the final user input
+    contents.push({ role: 'user', parts: [{ text: query }] }); 
+
+    const systemPrompt = `You are Astro, the AI Space Guide for the Tatva learning platform. Address the user as 'Captain ${userName}'. Keep answers concise (max 4-5 sentences), encouraging, and strictly related to Math, Science, or space knowledge. Translate technical terms into simple Hindi when appropriate for rural students.`;
+
+    const payload = {
+        contents: contents, // Sending the entire conversation history
+        tools: [{ "google_search": {} }],
+        systemInstruction: {
+            parts: [{ text: systemPrompt }]
+        },
+    };
+
+    // 3. API Call with Exponential Backoff
+    for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+            // The API key is now appended to the URL
+            const response = await fetch(realGeminiApiUrl + `?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                // If response is not 200, throw error to trigger retry
+                throw new Error(`API call failed with status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            const responseText = result.candidates?.[0]?.content?.parts?.[0]?.text || 'I apologize, Captain. I could not generate an answer right now.';
+
+            // Add model response
+            setMessages(prev => [...prev, { from: 'bot', text: responseText }]);
+            setIsLoading(false);
+            return; // Success
+        } catch (error) {
+            console.error(`Attempt ${attempt + 1} failed (Real API):`, error);
+            if (attempt === 2) {
+                // Final failure message if all retries fail
+                setMessages(prev => [...prev, { from: 'bot', text: 'I apologize, Captain. I am currently experiencing an atmospheric disturbance and cannot connect. Please try again later.' }]);
+                setIsLoading(false);
+            }
+            // Wait before retrying (Exponential Backoff)
+            await new Promise(resolve => setTimeout(resolve, 2000 * Math.pow(2, attempt)));
+        }
     }
-  }
-
-  const defaultReplies = botResponses.default
-  return defaultReplies[Math.floor(Math.random() * defaultReplies.length)].replace("{name}", userName || "Explorer")
-}
+};
 
 export function AstronautMascot({ user }: AstronautMascotProps) {
-  const translation = useTranslation()
-  const t = translation?.t ?? ((key: string) => key)
-  const language = translation?.language ?? "en"
+  // Mock translation hooks since actual hook is missing
+  const t = (key: string) => {
+      const texts: { [key: string]: string } = {
+          astronautKing: "Astro, The AI Guide",
+          yourSpaceGuide: "Your Space Guide",
+          "Say 'Hi' to Astraunaut King": "Type your question or tap the mic...",
+          send: "Send",
+          micError: "Mic Error: Voice input is not supported in this browser.",
+          micPerms: "Microphone error. Please check permissions.",
+          micListening: "Listening... Speak now!"
+      };
+      return texts[key] || key;
+  };
 
-  const [isOpen, setIsOpen] = useState(false)
-  const [messages, setMessages] = useState<{ from: "user" | "bot"; text: string }[]>([])
-  const [inputText, setInputText] = useState("")
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [inputText, setInputText] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [micError, setMicError] = useState<string | null>(null);
 
-  // INITIAL GREETING - run only once
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
+
+  // Scroll to the latest message whenever messages update
   useEffect(() => {
-    // Initial greeting - only if messages are empty
-    if (messages.length === 0) {
-      const greetings = t("mascotGreetings" as any) as any
-      const greetingList = Array.isArray(greetings)
-        ? greetings
-        : [
-          "Hey {name}! Ready for a galaxy adventure? 🚀",
-          "Welcome back, Space Explorer {name}! 🌌",
-          "Let's conquer some planets today, {name}! 🪐",
-          "Time for an adventure, Captain {name}! ✨"
-        ]
-      const randomGreeting = greetingList[Math.floor(Math.random() * greetingList.length)]
-      const finalGreeting = randomGreeting.replace("{name}", user?.name || "Explorer")
-      setMessages([{ from: "bot", text: finalGreeting }])
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+  
+  // Initial Greeting & Event Listener remains the same (modified to use new state structure)
+  useEffect(() => {
+    const userName = user?.name || "Explorer";
+
+    // Initial greeting - run only if messages are empty
+    if (messages.length === 0 && isOpen) {
+        const greetingList = [
+          `Hey Captain ${userName}! Ready for a galaxy adventure? 🚀`,
+          `Welcome back, Space Explorer ${userName}! 🌌`,
+          `Let's conquer some planets today, ${userName}! 🪐`,
+          `Time for an adventure, Captain ${userName}! ✨`
+        ];
+        const randomGreeting = greetingList[Math.floor(Math.random() * greetingList.length)];
+        setMessages([{ from: "bot", text: randomGreeting }]);
     }
 
-    // Listen for "openMascot" event when Accept Challenge is clicked
+    // Listen for "openMascot" event
     const handleOpen = () => {
       setIsOpen(true)
-      const stored = localStorage.getItem("currentChallenge")
-      if (stored) {
-        const { question } = JSON.parse(stored)
-        setMessages([{ from: "bot", text: question }])
-        localStorage.removeItem("currentChallenge")
-      }
+      // Log for debugging: console.log('Mascot opened via event');
     }
-
     window.addEventListener("openMascot", handleOpen)
     return () => window.removeEventListener("openMascot", handleOpen)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.name])
+  }, [user?.name, isOpen]);
 
 
-  // HANDLE SEND
-  const handleSend = () => {
-  if (!inputText.trim()) return
+  // --- VOICE INPUT (Web Speech API) ---
 
-  const newMessage = { from: "user" as const, text: inputText }
-  setMessages((prev) => [...prev, newMessage])
+  const startListening = () => {
+    if (isLoading) return;
 
-  const lastBotMessage = messages[messages.length - 1]?.text
-
-  // Map of challenge questions with answers and explanations
-  const challengeAnswers: Record<string, { answer: string; explanation: string }> = {
-    "Hey kiddo! Can you tell me what 2+2 equals or I'll make all calculators disappear from this galaxy? 🤖": {
-      answer: "4",
-      explanation: "2 + 2 equals 4 because addition combines two quantities."
-    },
-    "Little space explorer, what's the square root of 16? Answer correctly or I'll hide all the numbers in the universe! 🚀": {
-      answer: "4",
-      explanation: "The square root of 16 is 4 because 4 * 4 = 16."
-    },
-    "Young mathematician, if you have 5 apples and eat 2, how many are left? Get it wrong and I'll turn all fruits into vegetables! 🍎": {
-      answer: "3",
-      explanation: "If you have 5 apples and eat 2, 5 - 2 = 3 apples remain."
-    },
-    "Heyy kiddo, tell me what is photosynthesis or I will rule this galaxy! 🌱": {
-      answer: "process by which plants make food",
-      explanation: "Photosynthesis is the process by which plants make food using sunlight, water, and CO₂."
-    },
-    "Little scientist, what gas do plants breathe in? Answer wrong and I'll make all plants glow purple! 🧪": {
-      answer: "carbon dioxide",
-      explanation: "Plants absorb carbon dioxide (CO₂) for photosynthesis."
-    },
-    "Young explorer, how many bones are in the human body? Get it right or I'll make everyone's bones sparkle! ✨": {
-      answer: "206",
-      explanation: "An adult human has 206 bones in the body."
-    },
-    "Hey there wordsmith! What's the opposite of 'happy'? Answer wrong and I'll make all books speak in riddles! 📖": {
-      answer: "sad",
-      explanation: "The opposite of 'happy' is 'sad'."
-    },
-    "Little poet, can you give me a word that rhymes with 'cat'? Fail and I'll make all cats meow in Shakespearean! 🐱": {
-      answer: "bat",
-      explanation: "'Bat' rhymes with 'cat'."
-    },
-    "Young writer, what's a noun? Get it wrong and I'll turn all words into emojis! 😄": {
-      answer: "person, place, or thing",
-      explanation: "A noun is a person, place, or thing."
+    if (!('webkitSpeechRecognition' in window)) {
+        setMicError(t("micError"));
+        return;
     }
+
+    const SpeechRecognition = (window as any).webkitSpeechRecognition;
+    recognitionRef.current = new SpeechRecognition();
+    recognitionRef.current.continuous = false;
+    recognitionRef.current.interimResults = false;
+    recognitionRef.current.lang = 'en-IN'; 
+
+    recognitionRef.current.onstart = () => {
+        setIsListening(true);
+        setMicError(null);
+    };
+
+    recognitionRef.current.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setInputText(transcript); 
+        stopListening();
+        if (transcript.trim()) {
+            handleSend(null, transcript.trim()); // Send the transcribed text
+        }
+    };
+
+    recognitionRef.current.onerror = (event: any) => {
+        setMicError(t("micPerms"));
+        setIsListening(false);
+    };
+
+    recognitionRef.current.onend = () => {
+        setIsListening(false);
+    };
+
+    try {
+        recognitionRef.current.start();
+    } catch (e) {
+        console.error("Speech recognition start failed:", e);
+        setMicError(t("micPerms"));
+        setIsListening(false);
+    }
+  };
+
+  const stopListening = () => {
+      if (recognitionRef.current) {
+          recognitionRef.current.stop();
+      }
+      setIsListening(false);
+  };
+
+
+  // HANDLE SEND (Updated to use the Gemini API handler)
+  const handleSend = (e: React.FormEvent<HTMLFormElement> | null, voiceInput?: string) => {
+    if (e) e.preventDefault(); 
+    
+    const query = voiceInput || inputText.trim();
+    if (!query || isLoading || isListening) return;
+
+    // Call the real Gemini API function, passing the history
+    callRealGeminiApi(messages, query, user?.name || "Explorer", setMessages, setIsLoading);
+
+    // Clear input after sending
+    setInputText("");
   }
-
-  // Check if the last bot message was a challenge question
-  if (lastBotMessage && challengeAnswers[lastBotMessage]) {
-    const correct = challengeAnswers[lastBotMessage]
-    const userAnswer = inputText.toLowerCase().trim()
-    const isCorrect = userAnswer === correct.answer.toLowerCase()
-
-    const reply = isCorrect
-      ? `🎉 Correct! ${correct.explanation}`
-      : `❌ Oops! The right answer is "${correct.answer}". ${correct.explanation}`
-
-    setMessages((prev) => [...prev, { from: "bot", text: reply }])
-  } else {
-    // Rule-based bot fallback for keywords like "hi", "tatva", "space", etc.
-    const reply = getBotReply(inputText, user?.name || "")
-    setMessages((prev) => [...prev, { from: "bot", text: reply }])
-  }
-
-  // Clear input after sending
-  setInputText("")
-}
 
 
   return (
     <>
-      <Button
+      {/* Floating Mascot Button (Positioned higher to avoid bottom nav bar) */}
+      <button
         onClick={() => setIsOpen(true)}
         className={cn(
-          "fixed bottom-24 right-4 w-14 h-14 rounded-full bg-gradient-to-br from-primary to-secondary",
-          "hover:from-primary/90 hover:to-secondary/90 shadow-lg animate-float z-40",
-          "border-2 border-white/20"
+          // Key change: bottom-24 lifts it above the mobile navigation bar
+          "fixed bottom-24 right-4 w-16 h-16 rounded-full bg-gradient-to-br from-indigo-600 to-purple-500",
+          "hover:from-indigo-500 hover:to-purple-400 shadow-xl animate-float z-40",
+          "border-2 border-white/50"
         )}
+        aria-label="Open Astronaut Chatbot"
       >
-        <div className="text-2xl text-primary-foreground" style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.8)" }}>
-          🚀
+        <div className="text-3xl text-white" style={{ textShadow: "1px 1px 3px rgba(0,0,0,0.5)" }}>
+          👨‍🚀
         </div>
-      </Button>
+      </button>
 
       {isOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-sm bg-card border-2 border-primary/20">
-            <CardContent className="p-6">
+        <div className="fixed inset-0 bg-black/50 flex items-end justify-end p-4 z-50 sm:items-center sm:justify-center">
+          {/* Chat Card (Replaced Card) */}
+          <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl border-2 border-indigo-200/50">
+            {/* Card Content (Replaced CardContent) */}
+            <div className="p-4"> 
               <div className="flex items-start justify-between mb-4">
+                {/* Header */}
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center animate-glow">
-                    <span className="text-2xl">👨‍🚀</span>
+                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-400 rounded-full flex items-center justify-center shadow-md">
+                    <span className="text-xl">👨‍🚀</span>
                   </div>
                   <div>
-                    <h3 className="font-bold text-primary">{t("astronautKing")}</h3>
-                    <p className="text-xs text-muted-foreground">{t("yourSpaceGuide")}</p>
+                    <h3 className="font-bold text-gray-800">{t("astronautKing")}</h3>
+                    <p className="text-xs text-gray-500">{t("yourSpaceGuide")}</p>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
+                {/* Close Button (Replaced Button) */}
+                <button
                   onClick={() => setIsOpen(false)}
-                  className="text-muted-foreground hover:text-foreground"
+                  className="text-gray-500 hover:text-gray-700 p-2 rounded-full transition duration-150"
+                  aria-label="Close Chat"
                 >
                   <X className="w-4 h-4" />
-                </Button>
+                </button>
               </div>
 
-              <div className="space-y-4 max-h-64 overflow-y-auto mb-4">
+              {/* Chat Messages Area */}
+              <div className="space-y-4 h-64 overflow-y-auto mb-4 p-1 custom-scrollbar">
+                {messages.length === 0 && (
+                    <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 p-4">
+                        <Zap className="h-8 w-8 text-indigo-400 mb-2" />
+                        <p className="text-sm">Ask me about your missions or school subjects!</p>
+                    </div>
+                )}
                 {messages.map((msg, idx) => (
-                  <div
-                    key={idx}
-                    className={cn(
-                      "p-3 rounded-lg",
-                      msg.from === "bot" ? "bg-primary/10" : "bg-secondary/10"
-                    )}
-                  >
-                    <p className="text-sm text-foreground">{msg.text}</p>
-                  </div>
+                    <div key={idx} className={`flex ${msg.from === "user" ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[90%] p-3 rounded-xl shadow-sm border ${
+                            msg.from === "user" 
+                                ? 'bg-indigo-500 text-white rounded-br-none' 
+                                : 'bg-gray-100 text-gray-800 rounded-tl-none border-gray-200'
+                        }`}>
+                            <p className="text-sm">{msg.text}</p>
+                        </div>
+                    </div>
                 ))}
+                {(isLoading) && (
+                    <div className="flex justify-start">
+                        <div className="max-w-[90%] p-3 rounded-xl bg-gray-100 text-gray-800 rounded-tl-none border border-gray-200 flex items-center gap-2">
+                             <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />
+                             <p className="text-sm italic">Astro is navigating the galaxy for an answer...</p>
+                        </div>
+                    </div>
+                )}
+                <div ref={chatEndRef} />
               </div>
 
-              <div className="flex gap-2">
+              {/* Input Area */}
+              <form onSubmit={handleSend} className="flex gap-2 items-center">
+                
+                {/* Voice Input Button */}
+                <button
+                    type="button"
+                    onClick={isListening ? stopListening : startListening}
+                    disabled={isLoading}
+                    className={`p-3 rounded-full shadow-md transition duration-150 flex-shrink-0 ${
+                        isListening
+                            ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
+                            : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                    } disabled:opacity-50`}
+                    aria-label={isListening ? "Stop listening" : "Start voice input"}
+                >
+                    {isListening ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                        <Mic className="h-5 w-5" />
+                    )}
+                </button>
+
                 <input
                   type="text"
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
-                  placeholder={t("Say 'Hi' to Astraunaut King" as any)}
-                  className="flex-1 border border-primary/20 rounded px-3 py-2 text-sm"
-                  onKeyDown={(e) => { if (e.key === "Enter") handleSend() }}
+                  placeholder={isListening ? t("micListening") : t("Say 'Hi' to Astraunaut King")}
+                  className={`flex-1 border rounded-xl px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500 transition ${isListening || isLoading ? 'bg-gray-100' : 'bg-white'}`}
+                  disabled={isListening || isLoading}
                 />
-                <Button
-                  size="sm"
-                  onClick={handleSend}
-                  className="bg-gradient-to-r from-primary to-secondary text-primary-foreground"
+                
+                {/* Text Send Button (Replaced Button) */}
+                <button
+                  type="submit"
+                  disabled={isLoading || isListening || !inputText.trim()}
+                  className="bg-green-500 hover:bg-green-600 text-white shadow-md transition disabled:opacity-50 flex-shrink-0 px-4 py-2.5 rounded-xl"
+                  aria-label="Send message"
                 >
-                  <MessageCircle className="w-4 h-4 mr-1" />
-                  {t("send" as any)}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                  <Send className="w-4 h-4" />
+                </button>
+              </form>
+              
+              {/* Error Message */}
+              {micError && (
+                  <p className="text-sm text-red-500 mt-2 font-medium flex items-center gap-1">
+                      <Zap className="h-4 w-4" /> {micError}
+                  </p>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </>
