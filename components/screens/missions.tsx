@@ -15,28 +15,7 @@ interface MissionsProps {
 
 
 
-const weeklyMissions = [
-  {
-    id: "weekly-explorer",
-    title: "Planet Explorer",
-    description: "Complete 5 chapters across any subjects",
-    progress: 0,
-    total: 5,
-    reward: "Space Explorer Badge",
-    type: "badge",
-    difficulty: "Hard",
-  },
-  {
-    id: "weekly-star",
-    title: "Star Collector",
-    description: "Earn 50 stars this week",
-    progress: 0,
-    total: 50,
-    reward: 200,
-    type: "coins",
-    difficulty: "Medium",
-  },
-]
+
 
 const specialEvents = [
   {
@@ -55,6 +34,29 @@ const specialEvents = [
 export function Missions({ user }: MissionsProps) {
   
   const [dailyMission , setDailyMission] = useState({"dailyMath" : 0 ,"dailyReading":0 , "dailyStreass" : 1})
+  const [dailyStat , setDailyStat] = useState({"solved" : 0 , "streak" : 1})
+  const weeklyMissions = [
+  {
+    id: "weekly-explorer",
+    title: "Planet Explorer",
+    description: "Complete 5 chapters across any subjects",
+    progress: dailyStat.solved > 5? 5 : dailyStat.solved,
+    total: 5,
+    reward: "Space Explorer Badge",
+    type: "badge",
+    difficulty: "Hard",
+  },
+  {
+    id: "weekly-star",
+    title: "Star Collector",
+    description: "Earn 50 stars this week",
+    progress: 0,
+    total: 50,
+    reward: 200,
+    type: "coins",
+    difficulty: "Medium",
+  },
+]
   useEffect(()=>{
       console.log("Use effect")
       fetch('http://localhost:5000/progress', {
@@ -76,6 +78,29 @@ export function Missions({ user }: MissionsProps) {
       let pg = {"dailyMath" :data.M_Q,"dailyReading":0 , "dailyStreass" : 1}
       setDailyMission(pg)
       console.log(pg,pg.dailyMath,"d",(pg.dailyMath || 0)>3 ? 3:(dailyMission.dailyReading || 0))
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+
+    fetch('http://localhost:5000/daily_info', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      phone_no: user?.phone_no || user?.phoneNumber,
+    }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then((data) => {
+      setDailyStat(data);
+      console.log(data)
     })
     .catch((error) => {
       console.error('Error:', error);
@@ -107,7 +132,7 @@ export function Missions({ user }: MissionsProps) {
     id: "daily-streak",
     title: "Learning Streak",
     description: "Login for 3 consecutive days",
-    progress: 1,
+    progress: dailyStat.streak,
     total: 3,
     reward: 100,
     type: "coins",

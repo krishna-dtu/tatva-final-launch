@@ -137,7 +137,6 @@ export function Quiz({S_id,user}){
       body: JSON.stringify({
         phone_no: phone_no,
         subjectId:sid_map() ,
-        ans : allAns
       }),
     });
     console.log(user)
