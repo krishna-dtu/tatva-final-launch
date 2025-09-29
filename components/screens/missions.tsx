@@ -3,13 +3,24 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Target, Clock, Star, Trophy, Zap, Gift } from "lucide-react"
+import { Progress as ProgressBar } from "@/components/ui/progress" // FIX: Aliased Progress to ProgressBar
+// Imported required Lucide icons
+import { Target, Clock, Star, Trophy, Zap, Gift, DollarSign, BookOpen } from "lucide-react"
+
+// --- FIX: Mocking useTranslation hook to resolve compilation error ---
+const useTranslation = () => {
+    // Basic mock implementation for t(key, fallback)
+    const t = (key: string, fallback?: string) => fallback || key.split(/(?=[A-Z])/).join(" ");
+    return { t };
+};
+// -------------------------------------------------------------------
+
 
 interface MissionsProps {
   user: any
 }
 
+// --- STATIC DATA (Defined outside the component for performance) ---
 const dailyMissions = [
   {
     id: "daily-math",
@@ -80,7 +91,31 @@ const specialEvents = [
   },
 ]
 
+// --- MAIN COMPONENT ---
 export function Missions({ user }: MissionsProps) {
+  const { t } = useTranslation()
+
+  // Handler for all mission 'Continue' buttons
+  const handleMissionAction = (mission: any) => {
+    // Determine the action based on the mission content
+    const missionTitleLower = mission.title.toLowerCase();
+
+    if (missionTitleLower.includes('math')) {
+      console.log(`ACTION: Routing to Math Practice page for mission: ${mission.id}`);
+      // In a real app: router.push('/app/practice/math');
+    } else if (missionTitleLower.includes('reading')) {
+      console.log(`ACTION: Launching Reading Timer/Lesson for mission: ${mission.id}`);
+      // In a real app: router.push('/app/lesson/reading');
+    } else if (mission.type === 'badge' || mission.type === 'crown') {
+      console.log(`ACTION: Directing to multi-subject challenge hub for mission: ${mission.id}`);
+      // In a real app: router.push('/app/challenges');
+    } else {
+      console.log(`ACTION: Starting general activity for mission: ${mission.id}`);
+      // Default: router.push('/app/mission/' + mission.id);
+    }
+  }
+
+  // Helper function to color the difficulty badge
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case "Easy":
@@ -90,136 +125,189 @@ export function Missions({ user }: MissionsProps) {
       case "Hard":
         return "bg-red-500/10 text-red-600 border-red-500/20"
       case "Special":
-        return "bg-purple-500/10 text-purple-600 border-purple-500/20"
+        // Special events get a unique, more exciting look
+        return "bg-purple-500/10 text-purple-600 border-purple-500/20 shadow-lg shadow-purple-500/10"
       default:
         return "bg-muted/10 text-muted-foreground border-muted/20"
     }
   }
 
+  // Helper function to get the appropriate icon for the reward type
   const getRewardIcon = (type: string) => {
     switch (type) {
       case "coins":
-        return <span className="text-yellow-500">🪙</span>
+        // Using DollarSign for a professional coin representation
+        return <DollarSign className="w-4 h-4 text-yellow-500 fill-yellow-500/20" />
       case "badge":
+        // Using Trophy for a badge/trophy reward
         return <Trophy className="w-4 h-4 text-purple-500" />
       case "crown":
-        return <span className="text-yellow-500">👑</span>
+        // Using Star/Gift for special items
+        return <Star className="w-4 h-4 text-yellow-500 fill-yellow-500/50" />
       default:
         return <Gift className="w-4 h-4 text-primary" />
     }
   }
 
-  const MissionCard = ({ mission, isSpecial = false }: { mission: any; isSpecial?: boolean }) => (
-    <Card className={`border-2 ${isSpecial ? "border-purple-500/30 bg-purple-500/5" : "border-primary/20"}`}>
-      <CardContent className="p-4 space-y-3">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <h4 className="font-semibold text-foreground">{mission.title}</h4>
-              <Badge className={getDifficultyColor(mission.difficulty)}>{mission.difficulty}</Badge>
-            </div>
-            <p className="text-sm text-muted-foreground">{mission.description}</p>
-            {mission.timeLeft && (
-              <p className="text-xs text-purple-600 mt-1 flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                {mission.timeLeft}
+  // Sub-component for a Mission Card
+  const MissionCard = ({ mission, isSpecial = false }: { mission: any; isSpecial?: boolean }) => {
+    const progressValue = (mission.progress / mission.total) * 100;
+    const isCompleted = mission.progress >= mission.total;
+
+    return (
+      <Card 
+          className={`border-2 transition-transform duration-200 ${isCompleted ? 'opacity-70' : 'hover:scale-[1.01] hover:shadow-lg'} ${isSpecial 
+              ? "border-purple-500/40 bg-purple-500/10 shadow-xl shadow-purple-500/10" 
+              : "border-primary/20 bg-card/90"
+          }`}
+      >
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <h4 className="font-semibold text-foreground">
+                  {t(mission.title.replace(/\s/g, ''), mission.title)}
+                </h4>
+                <Badge className={getDifficultyColor(mission.difficulty)}>{mission.difficulty}</Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                  {t(mission.description.replace(/\s/g, ''), mission.description)}
               </p>
+              {mission.timeLeft && (
+                <p className="text-xs text-purple-600 font-medium mt-2 flex items-center gap-1">
+                  <Clock className="w-3 h-3 text-purple-500" />
+                  {mission.timeLeft}
+                </p>
+              )}
+            </div>
+            {/* Mission Type Icon */}
+            {isCompleted ? (
+                <Trophy className="w-6 h-6 text-yellow-500 animate-bounce-slow" />
+            ) : (
+                <Target className="w-6 h-6 text-primary/70" />
             )}
           </div>
-          <Target className="w-5 h-5 text-primary animate-glow" />
-        </div>
 
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span>Progress</span>
-            <span>
-              {mission.progress}/{mission.total}
-            </span>
-          </div>
-          <Progress value={(mission.progress / mission.total) * 100} className="h-2" />
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm">
-            {getRewardIcon(mission.type)}
-            <span className="text-muted-foreground">
-              {typeof mission.reward === "number" ? `${mission.reward} coins` : mission.reward}
-            </span>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>{t("progress", "Progress")}</span>
+              <span className="font-medium">
+                {mission.progress}/{mission.total}
+              </span>
+            </div>
+            <ProgressBar // Using aliased name
+              value={progressValue} 
+              className={`h-2 bg-muted-foreground/20 ${isSpecial ? "bg-purple-500" : "bg-primary"}`}
+            />
           </div>
 
-          <Button
-            size="sm"
-            disabled={mission.progress >= mission.total}
-            className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white"
-          >
-            {mission.progress >= mission.total ? "Completed" : "Continue"}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  )
+          <div className="flex items-center justify-between pt-1">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              {getRewardIcon(mission.type)}
+              <span className="text-foreground">
+                {typeof mission.reward === "number" 
+                  ? `${mission.reward} ${t("coins", "coins")}` 
+                  : t(mission.reward.replace(/\s/g, ''), mission.reward)}
+              </span>
+            </div>
+
+            <Button
+              size="sm"
+              // PASSING THE ENTIRE MISSION OBJECT
+              onClick={() => handleMissionAction(mission)}
+              disabled={isCompleted}
+              className={`font-semibold shadow-md ${isCompleted 
+                ? "bg-gray-400 text-white" 
+                : "bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white"
+              }`}
+            >
+              {isCompleted ? t("completed", "Completed") : t("continue", "Continue")}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-8">
+      
+      {/* HEADER */}
       <div className="text-center space-y-2">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-          Mission Control 🎯
+        <h1 className="text-3xl font-extrabold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          {t("missionControl", "Mission Control")} 🎯
         </h1>
-        <p className="text-muted-foreground">Complete missions to earn rewards</p>
+        <p className="text-lg text-muted-foreground">{t("missionsSubTitle", "Complete objectives to earn stellar rewards.")}</p>
       </div>
 
+      {/* 1. Special Events */}
       {specialEvents.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Zap className="w-5 h-5 text-purple-500" />
-            <h2 className="text-lg font-bold text-foreground">Special Events</h2>
+        <div className="space-y-4">
+          <CardHeader className="p-0 border-b pb-2 border-purple-500/50">
+            <div className="flex items-center gap-3">
+              <Zap className="w-6 h-6 text-purple-500 animate-pulse" />
+              <h2 className="text-xl font-bold text-purple-500 uppercase">{t("specialEvents", "Special Events")}</h2>
+            </div>
+          </CardHeader>
+          <div className="grid grid-cols-1 gap-4">
+            {specialEvents.map((mission) => (
+              <MissionCard key={mission.id} mission={mission} isSpecial />
+            ))}
           </div>
-          {specialEvents.map((mission) => (
-            <MissionCard key={mission.id} mission={mission} isSpecial />
-          ))}
         </div>
       )}
 
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Target className="w-5 h-5 text-primary" />
-          <h2 className="text-lg font-bold text-foreground">Daily Missions</h2>
+      {/* 2. Daily Missions */}
+      <div className="space-y-4">
+        <CardHeader className="p-0 border-b pb-2 border-primary/20">
+            <div className="flex items-center gap-3">
+                <Target className="w-6 h-6 text-primary" />
+                <h2 className="text-xl font-bold text-foreground">{t("dailyMissions", "Daily Missions")}</h2>
+            </div>
+        </CardHeader>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {dailyMissions.map((mission) => (
+            <MissionCard key={mission.id} mission={mission} />
+          ))}
         </div>
-        {dailyMissions.map((mission) => (
-          <MissionCard key={mission.id} mission={mission} />
-        ))}
       </div>
 
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Trophy className="w-5 h-5 text-accent" />
-          <h2 className="text-lg font-bold text-foreground">Weekly Challenges</h2>
+      {/* 3. Weekly Challenges */}
+      <div className="space-y-4">
+        <CardHeader className="p-0 border-b pb-2 border-accent/20">
+            <div className="flex items-center gap-3">
+                <Trophy className="w-6 h-6 text-accent" />
+                <h2 className="text-xl font-bold text-foreground">{t("weeklyChallenges", "Weekly Challenges")}</h2>
+            </div>
+        </CardHeader>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {weeklyMissions.map((mission) => (
+            <MissionCard key={mission.id} mission={mission} />
+          ))}
         </div>
-        {weeklyMissions.map((mission) => (
-          <MissionCard key={mission.id} mission={mission} />
-        ))}
       </div>
 
-      <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+      {/* MISSION STATS CARD (Simplified and Enhanced) */}
+      <Card className="bg-card/50 backdrop-blur-sm border-border/50 shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Star className="w-5 h-5 text-accent" />
-            Mission Stats
+            <BookOpen className="w-5 h-5 text-secondary" />
+            {t("missionStats", "Mission Stats")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <p className="text-2xl font-bold text-primary">12</p>
-              <p className="text-xs text-muted-foreground">Completed</p>
+            <div className="p-2 border-r border-primary/10">
+              <p className="text-3xl font-extrabold text-primary">12</p>
+              <p className="text-xs text-muted-foreground">{t("completed", "Completed")}</p>
             </div>
-            <div>
-              <p className="text-2xl font-bold text-accent">5</p>
-              <p className="text-xs text-muted-foreground">In Progress</p>
+            <div className="p-2 border-r border-primary/10">
+              <p className="text-3xl font-extrabold text-accent">5</p>
+              <p className="text-xs text-muted-foreground">{t("inProgress", "In Progress")}</p>
             </div>
-            <div>
-              <p className="text-2xl font-bold text-secondary">850</p>
-              <p className="text-xs text-muted-foreground">Total Coins</p>
+            <div className="p-2">
+              <p className="text-3xl font-extrabold text-yellow-500">850</p>
+              <p className="text-xs text-muted-foreground">{t("totalCoins", "Total Coins")}</p>
             </div>
           </div>
         </CardContent>
