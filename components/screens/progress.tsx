@@ -5,6 +5,7 @@ import { Progress as ProgressBar } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { Trophy, Target, Calendar, TrendingUp, Award } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation"
+import { useState,useEffect } from "react"
 
 interface ProgressProps {
   user: any
@@ -64,7 +65,36 @@ const weeklyStats = [
 
 export function Progress({ user }: ProgressProps) {
   const { t } = useTranslation()
-
+  const [SubjectProgress,setSubjectProgress] = useState({"M_Q" : 0,"S_Q" :  0,"E_Q" : 0});
+  
+    // -------------------------------
+    useEffect(()=>{
+      console.log("Use effect")
+      fetch('http://localhost:5000/progress', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      phone_no: user?.phone_no || user?.phoneNumber,
+    }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then((data) => {
+      let pg = {"M_Q" : data.M_Q|| 0,"S_Q" :  data.S_Q|| 0,"E_Q" : data.E_G || 0}
+      setSubjectProgress(pg)
+      console.log(SubjectProgress)
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+  
+    },[])
   return (
     <div className="p-4 space-y-6">
       <div className="text-center space-y-2">
@@ -138,9 +168,9 @@ export function Progress({ user }: ProgressProps) {
                   <span>🔢</span>
                   <span>{t("mathematics")}</span>
                 </span>
-                <span>0%</span>
+                <span>{SubjectProgress.M_Q*10}%</span>
               </div>
-              <ProgressBar value={0} className="h-2" />
+              <ProgressBar value={SubjectProgress.M_Q*10} className="h-2" />
             </div>
 
             <div className="space-y-2">
@@ -149,9 +179,9 @@ export function Progress({ user }: ProgressProps) {
                   <span>🧪</span>
                   <span>{t("science")}</span>
                 </span>
-                <span>30%</span>
+                <span>{SubjectProgress.S_Q*10}%</span>
               </div>
-              <ProgressBar value={0} className="h-2" />
+              <ProgressBar value={SubjectProgress.E_Q*10} className="h-2" />
             </div>
 
             <div className="space-y-2">
@@ -160,9 +190,9 @@ export function Progress({ user }: ProgressProps) {
                   <span>📚</span>
                   <span>{t("english")}</span>
                 </span>
-                <span>60%</span>
+                <span>{SubjectProgress.E_Q*10}%</span>
               </div>
-              <ProgressBar value={0} className="h-2" />
+              <ProgressBar value={SubjectProgress.E_Q*10} className="h-2" />
             </div>
           </div>
         </CardContent>

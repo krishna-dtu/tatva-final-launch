@@ -6,7 +6,7 @@ import { Progress } from "@/components/ui/progress"
 import { Lock, Star, BookOpen, MessageCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/hooks/use-translation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 interface SubjectsProps {
   user: any
@@ -17,7 +17,36 @@ interface SubjectsProps {
 export function Subjects({ user , onNavigate ,quizID }: SubjectsProps) {
   const { t } = useTranslation()
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null)
+  const [SubjectProgress,setSubjectProgress] = useState({"M_Q" : 0,"S_Q" :  0,"E_Q" : 0});
 
+  // -------------------------------
+  useEffect(()=>{
+    console.log("Use effect")
+    fetch('http://localhost:5000/progress', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    phone_no: user?.phone_no || user?.phoneNumber,
+  }),
+})
+  .then((response) => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.json();
+  })
+  .then((data) => {
+    let pg = {"M_Q" : data.M_Q|| 0,"S_Q" :  data.S_Q|| 0,"E_Q" : data.E_G || 0}
+    setSubjectProgress(pg)
+    console.log(SubjectProgress)
+  })
+  .catch((error) => {
+    console.error('Error:', error);
+  });
+
+  },[])
   const subjects = [
     {
       id: "math",
@@ -25,9 +54,9 @@ export function Subjects({ user , onNavigate ,quizID }: SubjectsProps) {
       planetKey: "planetNumerus" as const,
       icon: "🔢",
       color: "from-blue-500 to-cyan-500",
-      progress: 0,
+      progress: SubjectProgress.M_Q * 10,
       chapters: 10,
-      completedChapters: 0,
+      completedChapters: SubjectProgress.M_Q,
       unlocked: true,
       stars: 23,
       questions: [
@@ -42,7 +71,7 @@ export function Subjects({ user , onNavigate ,quizID }: SubjectsProps) {
       planetKey: "planetScientia" as const,
       icon: "🧪",
       color: "from-green-500 to-emerald-500",
-      progress: 0,
+      progress: SubjectProgress.S_Q,
       chapters: 10,
       completedChapters: 0,
       unlocked: true,
@@ -59,7 +88,7 @@ export function Subjects({ user , onNavigate ,quizID }: SubjectsProps) {
       planetKey: "planetLingua" as const,
       icon: "📚",
       color: "from-purple-500 to-pink-500",
-      progress: 0,
+      progress: SubjectProgress.E_Q,
       chapters: 10,
       completedChapters: 0,
       unlocked: true,

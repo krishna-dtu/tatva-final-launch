@@ -171,77 +171,129 @@ router.post('/update-user', async (req, res) => {
   }
 });
 
-router.post("/getQuestion",async(req,res)=>{
-    console.log("Check",res.body)
-    let user = await subjectUser.find({subjectId : req.body.subjectId , phone : req.body.phone_no});
-    if (user){
-      user = new subjectUser({
-      phone : req.body.phone_no,
-      subject : req.body.subjectId,
-      lastUpdated: Date.now()
-    });
-    await user.save()  
-    size = user.answers.length 
-  
-    }
-    try{
-    let ans = await Question.find({subjectId : req.body.subjectId});
-    console.log("Question" ,ans , req.body.phone_no)
-    res.json({"size" : size , "question" : ans , "ans" : user.answers});
-    }
-    catch(err){
-      console.log(err)
-      res.send(err)
-    }
-  })
+router.post("/getQuestion", async (req, res) => {
+  try {
+    console.log("Check", req.body);
 
-  router.post("/updateuser",async(req,res)=>{
-    const {subjectId,phone_no,new_ans} = req.body;
-    try {
+    let user = await subjectUser.findOne({ subject: req.body.subjectId, phone: req.body.phone_no });
+
+    if (!user) {
+      user = new subjectUser({
+        phone: req.body.phone_no,
+        subject: req.body.subjectId,
+        lastUpdated: Date.now(),
+      });
+
+      await user.save();
+    }
+
+    const size = user.solved;
+
+    let ans = await Question.find({ subjectId: req.body.subjectId });
+
+    console.log("Question", ans, req.body.phone_no);
+
+    res.json({
+      size,
+      question: ans,
+      ans: user.answers,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
+  }
+});
+
+router.post('/completed', async (req, res) => {
+  try {
+    const { phone_no, subjectId } = req.body;
+    console.log(req.body);
+
+    if (!phone_no || !subjectId) {
+      return res.status(400).json({ message: 'phone and subject are required' });
+    }
+
+    const updatedUser = await subjectUser.findOneAndUpdate(
+      { phone: phone_no, subject: subjectId }, // Use correct field names
+      { 
+        chapterCompleted: true,
+        lastUpdated: Date.now()
+      },
+      { new: true, upsert: true } // Upsert to create if not found
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found for given phone and subject' });
+    }
+
+    return res.json({ message: 'Chapter marked as completed', user: updatedUser });
+  } catch (err) {
+    console.error("Error in /completed:", err);
+    return res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+
+  router.post("/updateuser", async (req, res) => {
+  const { subjectId, phone_no, ans } = req.body;
+  console.log("Received answers:", ans);
+
+  try {
+    // Update SubjectUser collection
     const updatedDoc = await subjectUser.findOneAndUpdate(
       {
         subject: subjectId,
-        phone: phone_no
+        phone: phone_no,
       },
       {
-        answers: new_ans,
-        lastUpdated: Date.now()
+        $inc: {
+          solved: 1,
+        },
+        $set: {
+          lastUpdated: new Date(),
+        },
       },
       {
-        new: true,       // return the updated document
-        upsert: true    
+        new: true,     // return the updated document
+        upsert: true,  // create if not exists
       }
     );
 
-    const updateUser = await User.findOneAndUpdate({phone_no},{
+    // Update User collection
+    const updateUser = await User.findOneAndUpdate(
+      { phone_no },
+      {
         $inc: {
           exp: 5,
           stars: 10,
-          coins : 20
+          coins: 20,
         },
         $set: {
-      lastUpdated: Date.now() // <-- Fix here: call the function
-    }
+          lastUpdated: new Date(),
+        },
       },
       {
-        new: true
+        new: true,
+        upsert: true,
       }
-    )
+    );
 
-    if (!updatedDoc) {
-      return res.status(404).json({ message: 'SubjectUser not found' });
+    if (!updatedDoc || !updateUser) {
+      return res.status(404).json({ message: 'User or SubjectUser not found' });
     }
 
     res.status(200).json({
       message: 'Answers updated successfully',
-      data: updatedDoc
+      subjectUser: updatedDoc,
+      user: updateUser,
     });
+
   } catch (error) {
     console.error("Update error:", error);
     res.status(500).json({ message: 'Internal server error' });
   }
-    
-  })
+});
+
 
 
   router.post("/getData",async(req,res)=>{
@@ -250,6 +302,20 @@ router.post("/getQuestion",async(req,res)=>{
     userData.missions = 0,
     dailymission = [0,0,0],
     weeklymission = [0,0]
+  })
+
+  router.post('/progress',async(req,res)=>{
+    const {phone_no} = req.body;
+    console.log(phone_no)
+    let resp = await subjectUser.find({phone : phone_no})
+    const result = {};
+
+    resp.forEach(item => {
+      if (item.subject !== undefined && item.solved !== undefined) {
+        result[item.subject] = item.solved;
+      }
+    })
+    res.send(result)
   })
 
 

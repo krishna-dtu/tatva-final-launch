@@ -6,9 +6,13 @@ const subjectUserSchema = new mongoose.Schema({
     ref: 'Subject',
     required: true
   },
-  answers: {
-    type: [String],
-    default: []
+//  answers: {
+//   type: [mongoose.Schema.Types.Mixed],  // Accept any type of data inside the array
+//   default: []
+// },
+  solved : {
+    type : Number,
+    default : 0
   },
   phone: {
     type: String,
@@ -28,6 +32,8 @@ const subjectUserSchema = new mongoose.Schema({
     default: Date.now
   }
 });
+
+subjectUserSchema.index({ phone: 1, subject: 1 }, { unique: true });
 
 const subjectUser = mongoose.model('subjectUser', subjectUserSchema);
 module.exports = subjectUser;

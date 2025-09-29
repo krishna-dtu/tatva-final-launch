@@ -44,23 +44,25 @@ export function Quiz({S_id,user}){
     console.log("phone",user.phone_no)
     let sid = sid_map()
     console.log("sid",sid)
+    console.log("user",user)
   const response = await fetch("http://localhost:5000/getQuestion", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        phone_no: user.phone_no,
+        phone_no: user?.phoneNumber || user?.phone_no,
         subjectId:sid ,
       }),
+      
     });
     let data = await response.json()
     if(isLoading){
-      setCurrentQuestionIndex()
+      console.log(data)
+      setCurrentQuestionIndex(data.size)
       setallAns(data.ans)
-  setCurrentQuestionIndex(data.size)
   setQuestion(data.question);
-  console.log("ans",data.question);
+  console.log("ans",data);
   setIsLoading(false)
     }
   }
@@ -116,14 +118,16 @@ export function Quiz({S_id,user}){
   const handleSubmitAnswer = () => {
     // 
     console.log(allAns,"ams" ,selectedAnswer)
-    const new_ans = allAns
+    const new_ans = [{...allAns}]
+    console.log(selectedAnswer , new_ans)
     new_ans.push(selectedAnswer)
-    setallAns(new_ans)
+    setallAns(new_ans[0])
     user.exp += 5;
     user.coins += 20;
     user.stars += 10;
     localStorage.setItem(`user_${user.phone_no}`,JSON.stringify(user))
     // user = newUser()
+    let phone_no = user.phone_no || user.phoneNumber
     
     fetch("http://localhost:5000/updateuser",{
       method : "POST",
@@ -131,11 +135,13 @@ export function Quiz({S_id,user}){
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        phone_no: user.phone_no,
-        subjectId:sid_map ,
+        phone_no: phone_no,
+        subjectId:sid_map() ,
         ans : allAns
       }),
     });
+    console.log(user)
+    console.log(phone_no,sid_map())
     setShowResult(true);
   };
 
@@ -235,6 +241,17 @@ export function Quiz({S_id,user}){
 
   // Quiz Results Screen
   if (quizCompleted) {
+    // 
+    fetch("http://localhost:5000/completed",{
+      method : "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        phone_no: user?.phone_no || user?.phoneNumber,
+        subjectId:sid_map() 
+      }),
+    });
     const percentage = Math.round((score / totalQuestions) * 100);
     
     return (

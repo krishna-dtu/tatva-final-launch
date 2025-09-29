@@ -5,43 +5,15 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Target, Clock, Star, Trophy, Zap, Gift } from "lucide-react"
+import { useState,useEffect } from "react"
+import { David_Libre } from "next/font/google"
+
 
 interface MissionsProps {
   user: any
 }
 
-const dailyMissions = [
-  {
-    id: "daily-math",
-    title: "Math Master",
-    description: "Complete 3 math problems",
-    progress: 0,
-    total: 3,
-    reward: 50,
-    type: "coins",
-    difficulty: "Easy",
-  },
-  {
-    id: "daily-reading",
-    title: "Reading Rocket",
-    description: "Read for 15 minutes",
-    progress: 0,
-    total: 15,
-    reward: 30,
-    type: "coins",
-    difficulty: "Medium",
-  },
-  {
-    id: "daily-streak",
-    title: "Learning Streak",
-    description: "Login for 3 consecutive days",
-    progress: 0,
-    total: 3,
-    reward: 100,
-    type: "coins",
-    difficulty: "Easy",
-  },
-]
+
 
 const weeklyMissions = [
   {
@@ -81,6 +53,67 @@ const specialEvents = [
 ]
 
 export function Missions({ user }: MissionsProps) {
+  
+  const [dailyMission , setDailyMission] = useState({"dailyMath" : 0 ,"dailyReading":0 , "dailyStreass" : 1})
+  useEffect(()=>{
+      console.log("Use effect")
+      fetch('http://localhost:5000/progress', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      phone_no: user?.phone_no || user?.phoneNumber,
+    }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then((data) => {
+      let pg = {"dailyMath" :data.M_Q,"dailyReading":0 , "dailyStreass" : 1}
+      setDailyMission(pg)
+      console.log(pg,pg.dailyMath,"d",(pg.dailyMath || 0)>3 ? 3:(dailyMission.dailyReading || 0))
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+},[])
+
+  const dailyMissions = [
+  {
+    id: "daily-math",
+    title: "Math Master",
+    description: "Complete 3 math problems",
+    progress: (dailyMission.dailyMath || 0)>3 ? 3:dailyMission.dailyMath || 0 ,
+    total: 3,
+    reward: 50,
+    type: "coins",
+    difficulty: "Easy",
+  },
+  {
+    id: "daily-reading",
+    title: "Reading Rocket",
+    description: "Read for 15 minutes",
+    progress: dailyMission.dailyReading || 0,
+    total: 15,
+    reward: 30,
+    type: "coins",
+    difficulty: "Medium",
+  },
+  {
+    id: "daily-streak",
+    title: "Learning Streak",
+    description: "Login for 3 consecutive days",
+    progress: 1,
+    total: 3,
+    reward: 100,
+    type: "coins",
+    difficulty: "Easy",
+  },
+]
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case "Easy":
@@ -133,12 +166,12 @@ export function Missions({ user }: MissionsProps) {
           <div className="flex justify-between text-sm">
             <span>Progress</span>
             <span>
-              {/* {mission.progress}/{mission.total} */}
-              {0}/{mission.total}
+              {mission.progress}/{mission.total}
+              {/* {dailyMission}/{mission.total} */}
             </span>
           </div>
-          {/* <Progress value={(mission.progress / mission.total) * 100} className="h-2" /> */}
-          <Progress value={(0 / mission.total) * 100} className="h-2" />
+          <Progress value={(mission.progress / mission.total) * 100} className="h-2" />
+          {/* <Progress value={(0 / mission.total) * 100} className="h-2" /> */}
         </div>
 
         <div className="flex items-center justify-between">

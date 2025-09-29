@@ -23,7 +23,7 @@ import { useTheme } from "@/hooks/use-theme"
 import { LanguageSelector } from "@/components/ui/language-selector"
 import { EditProfileModal } from "@/components/ui/edit-profile-modal"
 import { TechStackModal } from "@/components/ui/tech-stack-modal"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "@/hooks/use-translation"
 
 interface ProfileProps {
@@ -68,6 +68,7 @@ export function Profile({ user, onLogout, onUserUpdate, onLanguageChange }: Prof
   }
 
   const { level, title } = getUserLevel()
+  
 
   const handleUserUpdate = (updatedUser: any) => {
     if (onUserUpdate) {
@@ -148,7 +149,7 @@ export function Profile({ user, onLogout, onUserUpdate, onLanguageChange }: Prof
         <CardContent className="space-y-3">
           <div className="flex justify-between items-center">
             <span className="text-sm text-muted-foreground">Phone Number</span>
-            <span className="text-sm font-medium">{user?.phoneNumber || "+91 98765 43210"}</span>
+            <span className="text-sm font-medium">{user?.phoneNumber || user?.phone_no}</span>
           </div>
 
           <div className="flex justify-between items-center">
