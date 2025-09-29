@@ -1,7 +1,11 @@
 "use client"
 
+<<<<<<< HEAD
 import { useState, useMemo } from "react"
 import Link from "next/link"
+=======
+import { useState } from "react"
+>>>>>>> 94298f352861454ace6a4584aae35435908b391d
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -17,7 +21,7 @@ interface AuthScreenProps {
   onLogin: (userData: any) => void
 }
 
-export function AuthScreen({ onLogin }: AuthScreenProps) {
+export function AuthScreen({ onLogin }: AuthScreenProps) { 
   const { t, changeLanguage } = useTranslation()
   const [step, setStep] = useState<Step>("role")
   const [phoneNumber, setPhoneNumber] = useState("")
@@ -58,24 +62,79 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
     }
   }
 
+<<<<<<< HEAD
   const handlePhoneSubmit = () => setStep("otp")
 
   const handleOtpSubmit = () => {
     const existingUser = localStorage.getItem(`user_${phoneNumber}`)
     if (existingUser) onLogin(JSON.parse(existingUser))
     else setStep("profile")
+=======
+  const handlePhoneSubmit = () => {
+    setStep("otp")
+>>>>>>> 94298f352861454ace6a4584aae35435908b391d
   }
 
-  const handleProfileSubmit = () => {
-    const userData = {
-      phoneNumber,
-      ...profile,
-      createdAt: new Date().toISOString(),
-      progress: {},
-      stars: 0,
-      badges: [],
-      coins: 100,
+  const handleOtpSubmit = async () => {
+  console.log("handle");
+  const existingUserStr = localStorage.getItem(`user_${phoneNumber}`);
+  const existingUser = existingUserStr ? JSON.parse(existingUserStr) : null;
+
+  if (existingUser) {
+    console.log("existingUser found in localStorage", existingUser);
+
+    // existingUser is already parsed, so we can just use it directly
+    const parsedLocalUser = existingUser;
+    console.log("Body Parser",parsedLocalUser)
+
+    try {
+      const res = await fetch("https://tatvab.onrender.com/getUser", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ phone_no: parsedLocalUser.phone_no })
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch from server");
+
+      const apiResult = await res.json();
+      const apiUser = apiResult.userData;
+
+      // Compare lastUpdated timestamps
+      const localUpdated = new Date(parsedLocalUser?.lastUpdated || 0).getTime();
+      const apiUpdated = new Date(apiUser?.lastUpdated || 0).getTime();
+
+      if (apiUpdated >= localUpdated) {
+        // API user data is newer → update localStorage
+        console.log("API user is newer, updating localStorage.");
+        localStorage.setItem(`user_${phoneNumber}`, JSON.stringify(apiUser));
+        onLogin(apiUser);
+      } else if (localUpdated > apiUpdated) {
+        // Local user data is newer → sync to backend
+        console.log("Local user is newer, syncing to backend.");
+        await fetch("https://tatvab.onrender.com/update-user", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(parsedLocalUser)
+        });
+        onLogin(parsedLocalUser);
+      } else {
+        // Timestamps match → use local user
+        console.log("Timestamps match, using local user.");
+        onLogin(parsedLocalUser);
+      }
+
+      return;
+
+    } catch (err) {
+      console.warn("API call failed, falling back to localStorage:", err);
+      onLogin(parsedLocalUser);
+      return;
     }
+<<<<<<< HEAD
     localStorage.setItem(`user_${phoneNumber}`, JSON.stringify(userData))
     // Corrected type assertion for changeLanguage
   changeLanguage(profile.language as 'english' | 'hindi' | 'odia') 
@@ -88,11 +147,105 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20 flex items-center justify-center p-4">
       {/* Floating background circles - Retained */}
+=======
+  }
+
+  // If no user in localStorage, check backend existence
+  try {
+    const response = await fetch("https://tatvab.onrender.com/check-user", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ phone_no: phoneNumber })
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to check user existence");
+    }
+
+    const result = await response.json();
+    console.log("API result:", result);
+
+    if (result.exists && result.userData) {
+      localStorage.setItem(`user_${phoneNumber}`, JSON.stringify(result.userData));
+      if (result.userData.language) {
+        changeLanguage(result.userData.language as any);
+      }
+
+      console.log("Calling onLogin with API user:", result.userData);
+      onLogin(result.userData);
+      return;
+    }
+
+    // User does not exist, move to profile step
+    console.log("No user found in API, moving to profile step");
+    setStep("profile");
+
+  } catch (error) {
+    console.error("Error checking user in backend:", error);
+  }
+};
+
+
+
+  const handleProfileSubmit = async () => {
+  console.log("Updated/New User");
+
+  const userData = {
+    phone_no: phoneNumber,
+    ...profile,
+    createdAt: new Date().toISOString(),
+    progress: {}, // Check if it aligns perfectly with fetch and and ui loading
+    stars: 0,
+    badges: [],
+    coins: 100,
+
+  };
+
+  try {
+    const response = await fetch("https://tatvab.onrender.com/create-user", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(userData)
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to create user");
+    }
+
+    const createdUser = await response.json();
+
+    // Save to localStorage and proceed
+    localStorage.setItem(`user_${phoneNumber}`, JSON.stringify(createdUser));
+    changeLanguage(createdUser.language as any);
+    onLogin(createdUser);
+
+  } catch (error) {
+    console.error("Error creating user:", error);
+  }
+};
+
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20 flex items-center justify-center p-4">
+>>>>>>> 94298f352861454ace6a4584aae35435908b391d
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-4 h-4 bg-accent rounded-full animate-float opacity-60"></div>
-        <div className="absolute top-40 right-20 w-6 h-6 bg-primary rounded-full animate-float opacity-40" style={{ animationDelay: "1s" }}></div>
-        <div className="absolute bottom-32 left-1/4 w-3 h-3 bg-secondary rounded-full animate-float opacity-50" style={{ animationDelay: "2s" }}></div>
-        <div className="absolute bottom-20 right-1/3 w-5 h-5 bg-accent rounded-full animate-float opacity-30" style={{ animationDelay: "0.5s" }}></div>
+        <div
+          className="absolute top-40 right-20 w-6 h-6 bg-primary rounded-full animate-float opacity-40"
+          style={{ animationDelay: "1s" }}
+        ></div>
+        <div
+          className="absolute bottom-32 left-1/4 w-3 h-3 bg-secondary rounded-full animate-float opacity-50"
+          style={{ animationDelay: "2s" }}
+        ></div>
+        <div
+          className="absolute bottom-20 right-1/3 w-5 h-5 bg-accent rounded-full animate-float opacity-30"
+          style={{ animationDelay: "0.5s" }}
+        ></div>
       </div>
 
       <Card className="w-full max-w-md relative z-10 bg-card/95 backdrop-blur-sm border-2 border-primary/20 shadow-xl">
@@ -113,6 +266,7 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
         </CardHeader>
 
         <CardContent className="space-y-6">
+<<<<<<< HEAD
           
           {/* 1. Role Selection Step */}
           {step === "role" && (
@@ -139,6 +293,8 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
           )}
 
           {/* 2. Phone Step */}
+=======
+>>>>>>> 94298f352861454ace6a4584aae35435908b391d
           {step === "phone" && (
             <div className="space-y-4">
               <div className="space-y-2">

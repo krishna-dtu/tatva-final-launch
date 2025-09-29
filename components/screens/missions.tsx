@@ -3,30 +3,113 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Progress as ProgressBar } from "@/components/ui/progress" // FIX: Aliased Progress to ProgressBar
-// Imported required Lucide icons
-import { Target, Clock, Star, Trophy, Zap, Gift, DollarSign, BookOpen } from "lucide-react"
-
-// --- FIX: Mocking useTranslation hook to resolve compilation error ---
-const useTranslation = () => {
-    // Basic mock implementation for t(key, fallback)
-    const t = (key: string, fallback?: string) => fallback || key.split(/(?=[A-Z])/).join(" ");
-    return { t };
-};
-// -------------------------------------------------------------------
-
+import { Progress } from "@/components/ui/progress"
+import { Target, Clock, Star, Trophy, Zap, Gift } from "lucide-react"
 
 interface MissionsProps {
   user: any
 }
 
-// --- STATIC DATA (Defined outside the component for performance) ---
+
+
+
+
+const specialEvents = [
+  {
+    id: "diwali-special",
+    title: "Diwali Festival Challenge",
+    description: "Complete special Diwali-themed lessons",
+    progress: 0,
+    total: 5,
+    reward: "Festival Crown",
+    type: "crown",
+    difficulty: "Special",
+    timeLeft: "2 days left",
+  },
+]
+
+export function Missions({ user }: MissionsProps) {
+  
+  const [dailyMission , setDailyMission] = useState({"dailyMath" : 0 ,"dailyReading":0 , "dailyStreass" : 1})
+  const [dailyStat , setDailyStat] = useState({"solved" : 0 , "streak" : 1})
+  const weeklyMissions = [
+  {
+    id: "weekly-explorer",
+    title: "Planet Explorer",
+    description: "Complete 5 chapters across any subjects",
+    progress: dailyStat.solved > 5? 5 : dailyStat.solved,
+    total: 5,
+    reward: "Space Explorer Badge",
+    type: "badge",
+    difficulty: "Hard",
+  },
+  {
+    id: "weekly-star",
+    title: "Star Collector",
+    description: "Earn 50 stars this week",
+    progress: 0,
+    total: 50,
+    reward: 200,
+    type: "coins",
+    difficulty: "Medium",
+  },
+]
+  useEffect(()=>{
+      console.log("Use effect")
+      fetch('https://tatvab.onrender.com/progress', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      phone_no: user?.phone_no || user?.phoneNumber,
+    }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then((data) => {
+      let pg = {"dailyMath" :data.M_Q,"dailyReading":0 , "dailyStreass" : 1}
+      setDailyMission(pg)
+      console.log(pg,pg.dailyMath,"d",(pg.dailyMath || 0)>3 ? 3:(dailyMission.dailyReading || 0))
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+
+    fetch('https://tatvab.onrender.com/daily_info', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      phone_no: user?.phone_no || user?.phoneNumber,
+    }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then((data) => {
+      setDailyStat(data);
+      console.log(data)
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+},[])
+
 const dailyMissions = [
   {
     id: "daily-math",
     title: "Math Master",
     description: "Complete 3 math problems",
-    progress: 2,
+    progress: (dailyMission.dailyMath || 0)>3 ? 3:dailyMission.dailyMath || 0 ,
     total: 3,
     reward: 50,
     type: "coins",
@@ -36,7 +119,7 @@ const dailyMissions = [
     id: "daily-reading",
     title: "Reading Rocket",
     description: "Read for 15 minutes",
-    progress: 8,
+    progress: dailyMission.dailyReading || 0,
     total: 15,
     reward: 30,
     type: "coins",
@@ -46,7 +129,7 @@ const dailyMissions = [
     id: "daily-streak",
     title: "Learning Streak",
     description: "Login for 3 consecutive days",
-    progress: 2,
+    progress: dailyStat.streak,
     total: 3,
     reward: 100,
     type: "coins",
@@ -91,31 +174,7 @@ const specialEvents = [
   },
 ]
 
-// --- MAIN COMPONENT ---
 export function Missions({ user }: MissionsProps) {
-  const { t } = useTranslation()
-
-  // Handler for all mission 'Continue' buttons
-  const handleMissionAction = (mission: any) => {
-    // Determine the action based on the mission content
-    const missionTitleLower = mission.title.toLowerCase();
-
-    if (missionTitleLower.includes('math')) {
-      console.log(`ACTION: Routing to Math Practice page for mission: ${mission.id}`);
-      // In a real app: router.push('/app/practice/math');
-    } else if (missionTitleLower.includes('reading')) {
-      console.log(`ACTION: Launching Reading Timer/Lesson for mission: ${mission.id}`);
-      // In a real app: router.push('/app/lesson/reading');
-    } else if (mission.type === 'badge' || mission.type === 'crown') {
-      console.log(`ACTION: Directing to multi-subject challenge hub for mission: ${mission.id}`);
-      // In a real app: router.push('/app/challenges');
-    } else {
-      console.log(`ACTION: Starting general activity for mission: ${mission.id}`);
-      // Default: router.push('/app/mission/' + mission.id);
-    }
-  }
-
-  // Helper function to color the difficulty badge
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case "Easy":
@@ -188,18 +247,15 @@ export function Missions({ user }: MissionsProps) {
             )}
           </div>
 
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>{t("progress", "Progress")}</span>
-              <span className="font-medium">
-                {mission.progress}/{mission.total}
-              </span>
-            </div>
-            <ProgressBar // Using aliased name
-              value={progressValue} 
-              className={`h-2 bg-muted-foreground/20 ${isSpecial ? "bg-purple-500" : "bg-primary"}`}
-            />
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span>Progress</span>
+            <span>
+              {mission.progress}/{mission.total}
+            </span>
           </div>
+          <Progress value={(mission.progress / mission.total) * 100} className="h-2" />
+        </div>
 
           <div className="flex items-center justify-between pt-1">
             <div className="flex items-center gap-2 text-sm font-medium">
@@ -297,17 +353,17 @@ export function Missions({ user }: MissionsProps) {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-3 gap-4 text-center">
-            <div className="p-2 border-r border-primary/10">
-              <p className="text-3xl font-extrabold text-primary">12</p>
-              <p className="text-xs text-muted-foreground">{t("completed", "Completed")}</p>
+            <div>
+              <p className="text-2xl font-bold text-primary">12</p>
+              <p className="text-xs text-muted-foreground">Completed</p>
             </div>
-            <div className="p-2 border-r border-primary/10">
-              <p className="text-3xl font-extrabold text-accent">5</p>
-              <p className="text-xs text-muted-foreground">{t("inProgress", "In Progress")}</p>
+            <div>
+              <p className="text-2xl font-bold text-accent">5</p>
+              <p className="text-xs text-muted-foreground">In Progress</p>
             </div>
-            <div className="p-2">
-              <p className="text-3xl font-extrabold text-yellow-500">850</p>
-              <p className="text-xs text-muted-foreground">{t("totalCoins", "Total Coins")}</p>
+            <div>
+              <p className="text-2xl font-bold text-secondary">850</p>
+              <p className="text-xs text-muted-foreground">Total Coins</p>
             </div>
           </div>
         </CardContent>

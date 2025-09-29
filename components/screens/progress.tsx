@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress as ProgressBar } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
+<<<<<<< HEAD
 import { Button } from "@/components/ui/button"
 import { Trophy, Target, Calendar, TrendingUp, Award, DollarSign, Star, Zap, ShoppingCart } from "lucide-react"
 // FIX: Mocking useTranslation hook to resolve compilation error
@@ -14,6 +15,11 @@ const useTranslation = () => {
     const t = (key: string, fallback?: string) => fallback || key.split(/(?=[A-Z])/).join(" ");
     return { t };
 };
+=======
+import { Trophy, Target, Calendar, TrendingUp, Award } from "lucide-react"
+import { useTranslation } from "@/hooks/use-translation"
+import { useState,useEffect } from "react"
+>>>>>>> 94298f352861454ace6a4584aae35435908b391d
 
 interface ProgressProps {
   user: {
@@ -57,7 +63,7 @@ const MOCK_ACHIEVEMENTS = [
     description: "Login for 7 consecutive days",
     icon: "🔥",
     earned: false,
-    progress: 5,
+    progress: 0,
     total: 7,
   },
   {
@@ -66,7 +72,7 @@ const MOCK_ACHIEVEMENTS = [
     description: "Earn 100 stars",
     icon: "⭐",
     earned: false,
-    progress: 66,
+    progress: 0,
     total: 100,
   },
 ];
@@ -90,6 +96,7 @@ const MOCK_NEXT_LESSON = {
 export function Progress({ user }: ProgressProps) {
   // FIX: Using the locally defined useTranslation mock
   const { t } = useTranslation()
+<<<<<<< HEAD
 
   // Handler for the next lesson button
   const handleNextLesson = () => {
@@ -108,6 +115,38 @@ export function Progress({ user }: ProgressProps) {
       : 'bg-red-500/10 text-red-600 border-red-600/20'; // Corrected red-600 border class
 
 
+=======
+  const [SubjectProgress,setSubjectProgress] = useState({"M_Q" : 0,"S_Q" :  0,"E_Q" : 0});
+  
+    // -------------------------------
+    useEffect(()=>{
+      console.log("Use effect")
+      fetch('https://tatvab.onrender.com/progress', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      phone_no: user?.phone_no || user?.phoneNumber,
+    }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then((data) => {
+      let pg = {"M_Q" : data.M_Q|| 0,"S_Q" :  data.S_Q|| 0,"E_Q" : data.E_G || 0}
+      setSubjectProgress(pg)
+      console.log(SubjectProgress)
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+  
+    },[])
+>>>>>>> 94298f352861454ace6a4584aae35435908b391d
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-8">
       
@@ -183,22 +222,36 @@ export function Progress({ user }: ProgressProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="text-center">
+<<<<<<< HEAD
             <div className="text-5xl font-extrabold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               {t("level")} 3
+=======
+            <div className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              {t("level")} 1
+>>>>>>> 94298f352861454ace6a4584aae35435908b391d
             </div>
             <p className="text-sm text-muted-foreground font-semibold">{t("spaceCadet", "Space Cadet")}</p>
           </div>
 
           <div className="space-y-2">
+<<<<<<< HEAD
             <div className="flex justify-between text-sm font-medium">
               <span>{t("progressToLevel4", "Progress to Level 4")}</span>
               <span className="text-primary font-bold">750/1000 XP</span>
             </div>
             <ProgressBar value={75} className="h-3 bg-primary/20" />
+=======
+            <div className="flex justify-between text-sm">
+              <span>{t("progressToLevel2")}</span>
+              <span>10/1000 XP</span>
+            </div>
+            <ProgressBar value={0} className="h-3" />
+>>>>>>> 94298f352861454ace6a4584aae35435908b391d
           </div>
         </CardContent>
       </Card>
 
+<<<<<<< HEAD
       {/* WEEKLY STATS & SUBJECT PROGRESS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
@@ -250,6 +303,25 @@ export function Progress({ user }: ProgressProps) {
                     <span>{t("mathematics", "Mathematics")}</span>
                   </span>
                   <span className="text-primary font-bold">45%</span>
+=======
+      <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-accent" />
+            {t("thisWeek")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4">
+            {weeklyStats.map((stat, index) => (
+              <div key={index} className="space-y-1">
+                <p className="text-sm text-muted-foreground">
+                  {t(stat.label.toLowerCase().replace(/\s+/g, "") as any) || stat.label}
+                </p>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold text-foreground">{0}</span>
+                  <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-xs">{stat.change}</Badge>
+>>>>>>> 94298f352861454ace6a4584aae35435908b391d
                 </div>
                 <ProgressBar value={45} className="h-2 bg-blue-500" />
               </div>
@@ -286,6 +358,7 @@ export function Progress({ user }: ProgressProps) {
       {/* ACHIEVEMENTS */}
       <Card className="bg-card/50 backdrop-blur-sm border-border/50 shadow-md">
         <CardHeader>
+<<<<<<< HEAD
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
                 <Award className="w-5 h-5 text-accent" />
@@ -296,6 +369,56 @@ export function Progress({ user }: ProgressProps) {
             >
                 {t("viewAll", "View All")}
             </Button>
+=======
+          <CardTitle className="flex items-center gap-2">
+            <Target className="w-5 h-5 text-primary" />
+            {t("subjectProgress")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="flex items-center gap-2">
+                  <span>🔢</span>
+                  <span>{t("mathematics")}</span>
+                </span>
+                <span>{SubjectProgress.M_Q*10}%</span>
+              </div>
+              <ProgressBar value={SubjectProgress.M_Q*10} className="h-2" />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="flex items-center gap-2">
+                  <span>🧪</span>
+                  <span>{t("science")}</span>
+                </span>
+                <span>{SubjectProgress.S_Q*10}%</span>
+              </div>
+              <ProgressBar value={SubjectProgress.E_Q*10} className="h-2" />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="flex items-center gap-2">
+                  <span>📚</span>
+                  <span>{t("english")}</span>
+                </span>
+                <span>{SubjectProgress.E_Q*10}%</span>
+              </div>
+              <ProgressBar value={SubjectProgress.E_Q*10} className="h-2" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Award className="w-5 h-5 text-accent" />
+            {t("achievements")}
+>>>>>>> 94298f352861454ace6a4584aae35435908b391d
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">

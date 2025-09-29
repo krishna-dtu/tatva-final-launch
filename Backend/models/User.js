@@ -30,11 +30,10 @@ const userSchema = new mongoose.Schema({
     type: [String],
     default: []
   },
-  subject: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Subject',
-    default: []
-  }],
+  subject: {
+    type: [String],
+    default: ["M_Q","S_Q","E_Q"]
+  },
   level: {
     type: Number,
     default: 1
@@ -66,3 +65,4 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 module.exports = User;
+

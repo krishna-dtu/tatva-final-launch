@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Star, Coins, Trophy, Rocket, BookOpen, Target, Zap, Award } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation"
+import { useEffect,useState } from "react"
 
 interface DashboardProps {
   user: any
@@ -12,6 +13,47 @@ interface DashboardProps {
 }
 
 export function Dashboard({ user, onNavigate }: DashboardProps) {
+  // useEffect(()=> {
+  //   const getData = async()=>{
+  //   const response = await fetch("https://tatvab.onrender.com/userData",{
+  //     method : "POST",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //     body: JSON.stringify({
+  //       phone_no: user.phone_no
+  //     })
+  //     })
+  //     user = await response.json()
+  //   }
+  //   getData
+  // },[])
+
+  const [dailyStat , setDailyStat] = useState({"solved" : 0 , "streak" : 1})
+  useEffect(()=>{
+    fetch('https://tatvab.onrender.com/daily_info', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      phone_no: user?.phone_no || user?.phoneNumber,
+    }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then((data) => {
+      setDailyStat(data);
+      console.log(data)
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+  },[])
   const { t } = useTranslation()
 
   const getGreeting = () => {
@@ -75,9 +117,9 @@ export function Dashboard({ user, onNavigate }: DashboardProps) {
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span>{t("overallProgress")}</span>
-              <span>25%</span>
+              <span>{dailyStat.solved/12}%</span>
             </div>
-            <Progress value={25} className="h-2" />
+            <Progress value={dailyStat.solved*5 /6} className="h-2" />
           </div>
 
           <div className="grid grid-cols-2 gap-4 text-sm">

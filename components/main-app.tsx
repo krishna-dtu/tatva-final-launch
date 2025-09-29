@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { BottomNavigation } from "@/components/navigation/bottom-navigation"
 import { Dashboard } from "@/components/screens/dashboard"
 import { Subjects } from "@/components/screens/subjects"
@@ -8,6 +8,7 @@ import { Missions } from "@/components/screens/missions"
 import { Progress } from "@/components/screens/progress"
 import { Profile } from "@/components/screens/profile"
 import { AstronautMascot } from "@/components/mascot/astronaut-mascot"
+import { Quiz } from "@/components/screens/quiz"
 
 interface MainAppProps {
   user: any
@@ -18,25 +19,48 @@ interface MainAppProps {
 
 export function MainApp({ user, onLogout, onUserUpdate, onLanguageChange }: MainAppProps) {
   const [activeTab, setActiveTab] = useState("dashboard")
+  const [subjectID, setSubjectID] = useState<string | null>(null)  // set to null initially
+  const [questions, setQuestions] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
+  // Navigate between screens
   const handleNavigate = (screen: string) => {
     setActiveTab(screen)
+    console.log("Screen", screen)
   }
 
+  // When a subject is selected, update the subjectID only
+  const handleQuizId = (Sid: string) => {
+    setSubjectID(Sid)
+  }
+
+  // When subjectID updates, switch to quiz tab
+
+  // Fetch questions whenever we enter the quiz tab and have a subjectID
+
+  // Render the correct screen based on activeTab
   const renderScreen = () => {
     switch (activeTab) {
       case "dashboard":
         return <Dashboard user={user} onNavigate={handleNavigate} />
       case "subjects":
-        return <Subjects user={user} />
+        return <Subjects user={user} onNavigate={handleNavigate} quizID={handleQuizId} />
       case "missions":
         return <Missions user={user} />
       case "progress":
         return <Progress user={user} />
       case "profile":
         return (
-          <Profile user={user} onLogout={onLogout} onUserUpdate={onUserUpdate} onLanguageChange={onLanguageChange} />
+          <Profile
+            user={user}
+            onLogout={onLogout}
+            onUserUpdate={onUserUpdate}
+            onLanguageChange={onLanguageChange}
+          />
         )
+      case "quiz":
+        return <Quiz S_id={subjectID || ""}  user={user} />
       default:
         return <Dashboard user={user} onNavigate={handleNavigate} />
     }

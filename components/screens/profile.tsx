@@ -21,6 +21,7 @@ import {
   CheckCircle,
   Edit,
 } from "lucide-react"
+<<<<<<< HEAD
 import { useState } from "react" 
 
 // =========================================================================
@@ -152,6 +153,14 @@ interface CustomizationItem {
     owned: boolean;
     equipped?: boolean; 
 }
+=======
+import { useTheme } from "@/hooks/use-theme"
+import { LanguageSelector } from "@/components/ui/language-selector"
+import { EditProfileModal } from "@/components/ui/edit-profile-modal"
+import { TechStackModal } from "@/components/ui/tech-stack-modal"
+import { useEffect, useState } from "react"
+import { useTranslation } from "@/hooks/use-translation"
+>>>>>>> 94298f352861454ace6a4584aae35435908b391d
 
 interface ProfileProps {
   user: any
@@ -196,6 +205,7 @@ export function Profile({ user, onLogout, onUserUpdate, onLanguageChange }: Prof
   }
 
   const { level, title } = getUserLevel()
+  
 
   const handleUserUpdate = (updatedUser: any) => {
     if (onUserUpdate) {
@@ -308,10 +318,17 @@ export function Profile({ user, onLogout, onUserUpdate, onLanguageChange }: Prof
                 </Button>
             </div>
 
+<<<<<<< HEAD
             <div className="flex-1 space-y-1 text-center sm:text-left">
               <h2 className="text-2xl font-extrabold text-foreground">{user?.name || t("SpaceExplorer", "Space Explorer")}</h2>
               <p className="text-sm text-muted-foreground font-semibold">
                 {t("level")} {level} • {title}
+=======
+            <div className="flex-1 space-y-1">
+              <h2 className="text-xl font-bold text-foreground">{user?.name || "Space Explorer"}</h2>
+              <p className="text-sm text-muted-foreground">
+                Level {1} • {title}
+>>>>>>> 94298f352861454ace6a4584aae35435908b391d
               </p>
               
               {/* Rewards Summary */}
@@ -335,28 +352,44 @@ export function Profile({ user, onLogout, onUserUpdate, onLanguageChange }: Prof
         <Card className="bg-card/70 backdrop-blur-sm border-border/50 shadow-sm">
           <CardContent className="p-4 text-center">
             <Trophy className="w-6 h-6 mx-auto mb-2 text-accent" />
+<<<<<<< HEAD
             <p className="text-xl font-bold text-foreground">{user?.badges?.length || 3}</p>
             <p className="text-xs text-muted-foreground">{t("badges")}</p>
+=======
+            <p className="text-lg font-bold text-foreground">{user?.badges?.length || 0}</p>
+            <p className="text-xs text-muted-foreground">Badges</p>
+>>>>>>> 94298f352861454ace6a4584aae35435908b391d
           </CardContent>
         </Card>
 
         <Card className="bg-card/70 backdrop-blur-sm border-border/50 shadow-sm">
           <CardContent className="p-4 text-center">
             <Crown className="w-6 h-6 mx-auto mb-2 text-yellow-500" />
+<<<<<<< HEAD
             <p className="text-xl font-bold text-foreground">5</p>
             <p className="text-xs text-muted-foreground">{t("dayStreak", "Day Streak")}</p>
+=======
+            <p className="text-lg font-bold text-foreground">1</p>
+            <p className="text-xs text-muted-foreground">Day Streak</p>
+>>>>>>> 94298f352861454ace6a4584aae35435908b391d
           </CardContent>
         </Card>
 
         <Card className="bg-card/70 backdrop-blur-sm border-border/50 shadow-sm">
           <CardContent className="p-4 text-center">
             <User className="w-6 h-6 mx-auto mb-2 text-primary" />
+<<<<<<< HEAD
             <p className="text-xl font-bold text-foreground">{level}</p>
             <p className="text-xs text-muted-foreground">{t("level")}</p>
+=======
+            <p className="text-lg font-bold text-foreground">{1}</p>
+            <p className="text-xs text-muted-foreground">Level</p>
+>>>>>>> 94298f352861454ace6a4584aae35435908b391d
           </CardContent>
         </Card>
       </div>
 
+<<<<<<< HEAD
       {/* ACCOUNT & CUSTOMIZATION GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
@@ -381,6 +414,69 @@ export function Profile({ user, onLogout, onUserUpdate, onLanguageChange }: Prof
                         {item.label}
                     </span>
                     <span className="text-sm font-medium text-foreground">{item.value}</span>
+=======
+      <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings className="w-5 h-5 text-primary" />
+            Account Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-muted-foreground">Phone Number</span>
+            <span className="text-sm font-medium">{user?.phoneNumber || user?.phone_no}</span>
+          </div>
+
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-muted-foreground">Age</span>
+            <span className="text-sm font-medium">{user?.age || 12} years</span>
+          </div>
+
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-muted-foreground">Grade</span>
+            <span className="text-sm font-medium">Class {user?.grade || 7}</span>
+          </div>
+
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-muted-foreground flex items-center gap-2">
+              <Globe className="w-4 h-4" />
+              Language
+            </span>
+            <span className="text-sm font-medium">{getLanguageDisplay(user?.language)}</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Palette className="w-5 h-5 text-accent" />
+            Customize Avatar
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            {customizationItems.slice(0, 4).map((item) => (
+              <div
+                key={item.id}
+                className={`p-3 rounded-lg border text-center space-y-2 ${
+                  item.owned ? "bg-primary/5 border-primary/20" : "bg-muted/20 border-muted/20"
+                }`}
+              >
+                <div className="text-2xl">
+                  {item.type === "helmet" && "⛑️"}
+                  {item.type === "outfit" && "👕"}
+                  {item.type === "badge" && "🏅"}
+                </div>
+                <p className="text-xs font-medium">{item.name}</p>
+                {item.owned ? (
+                  <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-xs">Owned</Badge>
+                ) : (
+                  <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+                    <Coins className="w-3 h-3" />
+                    <span>{item.cost}</span>
+>>>>>>> 94298f352861454ace6a4584aae35435908b391d
                   </div>
               ))}
             </CardContent>
