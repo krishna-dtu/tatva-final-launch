@@ -8,7 +8,7 @@ const questionSchema = new mongoose.Schema({
   subjectId: {
     type: String,
     required: true,
-    ref: 'Course',
+    ref: 'Course', 
   },
   question : {
     type : String,

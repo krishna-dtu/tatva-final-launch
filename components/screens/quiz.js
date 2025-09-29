@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, CheckCircle, XCircle, Award, RotateCcw, ChevronRight, ChevronLeft, Home, Trophy, Target, BookOpen } from 'lucide-react';
 
-export function Quiz({S_id,user}){
+export function Quiz({S_id,user , hadnleuodate}){
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [showResult, setShowResult] = useState(false);

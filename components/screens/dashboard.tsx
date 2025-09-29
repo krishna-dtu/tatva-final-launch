@@ -13,21 +13,6 @@ interface DashboardProps {
 }
 
 export function Dashboard({ user, onNavigate }: DashboardProps) {
-  // useEffect(()=> {
-  //   const getData = async()=>{
-  //   const response = await fetch("http://localhost:5000/userData",{
-  //     method : "POST",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //     },
-  //     body: JSON.stringify({
-  //       phone_no: user.phone_no
-  //     })
-  //     })
-  //     user = await response.json()
-  //   }
-  //   getData
-  // },[])
 
   const { t } = useTranslation()
 
@@ -39,6 +24,10 @@ export function Dashboard({ user, onNavigate }: DashboardProps) {
   }
 
   const handleContinueLearning = () => {
+    console.log("Ec")
+    console.log(localStorage.getItem("tatva_user") , "user")
+    const newChange = {...user,coins : 300}
+    localStorage.setItem("tatva_user",JSON.stringify(newChange))
     onNavigate("subjects")
   }
 

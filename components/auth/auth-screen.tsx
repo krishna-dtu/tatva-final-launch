@@ -13,7 +13,7 @@ interface AuthScreenProps {
   onLogin: (userData: any) => void
 }
 
-export function AuthScreen({ onLogin }: AuthScreenProps) {
+export function AuthScreen({ onLogin }: AuthScreenProps) { 
   const { t, changeLanguage } = useTranslation()
   const [step, setStep] = useState<"phone" | "otp" | "profile">("phone")
   const [phoneNumber, setPhoneNumber] = useState("")

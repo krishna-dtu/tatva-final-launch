@@ -60,7 +60,7 @@ export function MainApp({ user, onLogout, onUserUpdate, onLanguageChange }: Main
           />
         )
       case "quiz":
-        return <Quiz S_id={subjectID || ""}  user={user} />
+        return <Quiz S_id={subjectID || ""}  user={user} hadnleuodate={onUserUpdate} />
       default:
         return <Dashboard user={user} onNavigate={handleNavigate} />
     }

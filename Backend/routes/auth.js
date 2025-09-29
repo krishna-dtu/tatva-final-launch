@@ -250,6 +250,7 @@ router.post("/getQuestion",async(req,res)=>{
     userData.missions = 0,
     dailymission = [0,0,0],
     weeklymission = [0,0]
+    
   })
 
 
